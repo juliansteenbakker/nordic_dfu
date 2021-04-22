@@ -29,14 +29,14 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler {
      * Method Channel
      */
     private var channel: MethodChannel? = null
+
     private var controller: DfuServiceController? = null
     private var hasCreateNotification = false
     override fun onAttachedToEngine(binding: FlutterPluginBinding) {
         mContext = binding.applicationContext
         channel = MethodChannel(binding.binaryMessenger, "dev.steenbakker.nordic_dfu/method")
         channel!!.setMethodCallHandler(this)
-        val instance = NordicDfuPlugin()
-        DfuServiceListenerHelper.registerProgressListener(mContext!!, instance.mDfuProgressListener)
+        DfuServiceListenerHelper.registerProgressListener(binding.applicationContext, mDfuProgressListener)
     }
 
     override fun onDetachedFromEngine(binding: FlutterPluginBinding) {
@@ -100,6 +100,7 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler {
                 .setPacketsReceiptNotificationsValue(numberOfPackets ?: 0)
                 .setPrepareDataObjectDelay(400)
                 .setUnsafeExperimentalButtonlessServiceInSecureDfuEnabled(true)
+                .setNumberOfRetries(10)
         if (name != null) {
             starter.setDeviceName(name)
         }
