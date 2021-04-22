@@ -60,7 +60,7 @@ public final class ResourceUtils {
         OutputStream os = null;
         try {
             os = new BufferedOutputStream(new FileOutputStream(file, append));
-            byte data[] = new byte[BUFFER_SIZE];
+            byte[] data = new byte[BUFFER_SIZE];
             int len;
             while ((len = is.read(data, 0, BUFFER_SIZE)) != -1) {
                 os.write(data, 0, len);

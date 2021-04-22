@@ -12,31 +12,24 @@ import java.util.UUID;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import io.flutter.FlutterInjector;
+import io.flutter.embedding.engine.loader.FlutterLoader;
+import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
-import io.flutter.plugin.common.PluginRegistry.Registrar;
 import no.nordicsemi.android.dfu.DfuProgressListenerAdapter;
 import no.nordicsemi.android.dfu.DfuServiceController;
 import no.nordicsemi.android.dfu.DfuServiceInitiator;
 import no.nordicsemi.android.dfu.DfuServiceListenerHelper;
 
-public class NordicDfuPlugin implements MethodCallHandler {
-
-    private String TAG = "NordicDfuPlugin";
-
-    private String NAMESPACE = "com.steenbakker.nordic_dfu";
+public class NordicDfuPlugin implements FlutterPlugin, MethodCallHandler {
 
     /**
      * hold context
      */
     private Context mContext;
-
-    /**
-     * hold Registrar
-     */
-    private Registrar registrar;
 
     /**
      * hold result
@@ -52,20 +45,26 @@ public class NordicDfuPlugin implements MethodCallHandler {
 
     private boolean hasCreateNotification = false;
 
-    private NordicDfuPlugin(Registrar registrar) {
-        this.mContext = registrar.context();
-        this.channel = new MethodChannel(registrar.messenger(), NAMESPACE + "/method");
-        this.registrar = registrar;
-        channel.setMethodCallHandler(this);
-    }
-
-    public static void registerWith(Registrar registrar) {
-        NordicDfuPlugin instance = new NordicDfuPlugin(registrar);
-        DfuServiceListenerHelper.registerProgressListener(registrar.context(), instance.mDfuProgressListener);
+    @Override
+    public void onAttachedToEngine(@NonNull FlutterPluginBinding binding) {
+        this.mContext = binding.getApplicationContext();
+        this.channel = new MethodChannel(binding.getBinaryMessenger(), "dev.steenbakker.nordic_dfu/method");
+        NordicDfuPlugin instance = new NordicDfuPlugin();
+        DfuServiceListenerHelper.registerProgressListener(this.mContext, instance.mDfuProgressListener);
     }
 
     @Override
-    public void onMethodCall(MethodCall call, Result result) {
+    public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
+        this.mContext = null;
+        this.channel = null;
+    }
+
+    public NordicDfuPlugin() {
+        channel.setMethodCallHandler(this);
+    }
+
+    @Override
+    public void onMethodCall(MethodCall call, @NonNull Result result) {
         if (call.method.equals("startDfu")) {
             String address = call.argument("address");
             String name = call.argument("name");
@@ -91,7 +90,8 @@ public class NordicDfuPlugin implements MethodCallHandler {
             }
 
             if (fileInAsset) {
-                filePath = registrar.lookupKeyForAsset(filePath);
+                FlutterLoader loader = FlutterInjector.instance().flutterLoader();
+                filePath = loader.getLookupKeyForAsset(filePath);
                 String tempFileName = PathUtils.getExternalAppCachePath(mContext)
                         + UUID.randomUUID().toString();
                 // copy asset file to temp path
@@ -121,7 +121,7 @@ public class NordicDfuPlugin implements MethodCallHandler {
                 .setKeepBond(true)
                 .setForceDfu(forceDfu == null ? false:forceDfu)
                 .setPacketsReceiptNotificationsEnabled(enablePRNs == null ? Build.VERSION.SDK_INT < Build.VERSION_CODES.M:enablePRNs)
-                .setPacketsReceiptNotificationsValue(numberOfPackets== null ? -1 :numberOfPackets)
+                .setPacketsReceiptNotificationsValue(numberOfPackets== null ? 0 :numberOfPackets)
                 .setPrepareDataObjectDelay(400)
                 .setUnsafeExperimentalButtonlessServiceInSecureDfuEnabled(true);
         if (name != null) {
@@ -169,7 +169,7 @@ public class NordicDfuPlugin implements MethodCallHandler {
         controller = starter.start(mContext, DfuService.class);
     }
 
-    private DfuProgressListenerAdapter mDfuProgressListener = new DfuProgressListenerAdapter() {
+    private final DfuProgressListenerAdapter mDfuProgressListener = new DfuProgressListenerAdapter() {
         @Override
         public void onDeviceConnected(@NonNull String deviceAddress) {
             super.onDeviceConnected(deviceAddress);
@@ -281,7 +281,7 @@ public class NordicDfuPlugin implements MethodCallHandler {
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                final NotificationManager manager = (NotificationManager) registrar.activity().getSystemService(Context.NOTIFICATION_SERVICE);
+                final NotificationManager manager = (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
                 if (manager != null)
                     manager.cancel(DfuService.NOTIFICATION_ID);
             }
