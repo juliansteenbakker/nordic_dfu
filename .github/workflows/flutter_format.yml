@@ -23,5 +23,5 @@ jobs:
         run: flutter format -n --set-exit-if-changed .
       - name: Linter
         run: flutter analyze
-      - name: Test
-        run: flutter test
+#       - name: Test
+#         run: flutter test
