@@ -1,13 +1,14 @@
-# flutter-nordic-dfu [![pub package](https://img.shields.io/pub/v/nordic_dfu.svg)](https://pub.dartlang.org/packages/nordic_dfu)
+# nordic-dfu [![pub package](https://img.shields.io/pub/v/nordic_dfu.svg)](https://pub.dev/packages/nordic_dfu)
 
+Fork from [flutter_nordic_dfu](https://pub.dev/packages/flutter_nordic_dfu)
 This library allows you to do a Device Firmware Update (DFU) of your nrf51 or
-nrf52 chip from Nordic Semiconductor. It works for Android and iOS fine.
+nrf52 chip from Nordic Semiconductor. It works for Android and iOS.
 
 This is the implementation of the reference "[react-native-nordic-dfu](https://github.com/Pilloxa/react-native-nordic-dfu)"
 
 For more info about the DFU process, see: [Resources](#resources)
 
-## Run Example-->Amazing 
+## Run example
 
 1. Add your dfu zip file to `example/assets/file.zip`
 
@@ -19,10 +20,6 @@ For more info about the DFU process, see: [Resources](#resources)
 
 
 ## Usage
-
-### startDFU
-
-#### Examples
 
 You can pass an absolute file path or asset file to `NordicDfu`
 
