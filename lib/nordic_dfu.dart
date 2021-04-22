@@ -67,7 +67,7 @@ class IosSpecialParameter {
 }
 
 class NordicDfu {
-  static const String NAMESPACE = 'com.timeyaa.nordic_dfu';
+  static const String NAMESPACE = 'dev.steenbakker.nordic_dfu';
 
   static const MethodChannel _channel =
       const MethodChannel('$NAMESPACE/method');
