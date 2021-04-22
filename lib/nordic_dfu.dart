@@ -66,8 +66,8 @@ class IosSpecialParameter {
   });
 }
 
-class FlutterNordicDfu {
-  static const String NAMESPACE = 'com.timeyaa.flutter_nordic_dfu';
+class NordicDfu {
+  static const String NAMESPACE = 'com.timeyaa.nordic_dfu';
 
   static const MethodChannel _channel =
       const MethodChannel('$NAMESPACE/method');

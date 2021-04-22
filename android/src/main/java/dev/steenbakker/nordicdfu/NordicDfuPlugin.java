@@ -1,4 +1,4 @@
-package com.timeyaa.flutternordicdfu;
+package dev.steenbakker.nordicdfu;
 
 import android.app.NotificationManager;
 import android.content.Context;
@@ -22,11 +22,11 @@ import no.nordicsemi.android.dfu.DfuServiceController;
 import no.nordicsemi.android.dfu.DfuServiceInitiator;
 import no.nordicsemi.android.dfu.DfuServiceListenerHelper;
 
-public class FlutterNordicDfuPlugin implements MethodCallHandler {
+public class NordicDfuPlugin implements MethodCallHandler {
 
-    private String TAG = "FlutterNordicDfuPlugin";
+    private String TAG = "NordicDfuPlugin";
 
-    private String NAMESPACE = "com.timeyaa.flutter_nordic_dfu";
+    private String NAMESPACE = "com.steenbakker.nordic_dfu";
 
     /**
      * hold context
@@ -52,7 +52,7 @@ public class FlutterNordicDfuPlugin implements MethodCallHandler {
 
     private boolean hasCreateNotification = false;
 
-    private FlutterNordicDfuPlugin(Registrar registrar) {
+    private NordicDfuPlugin(Registrar registrar) {
         this.mContext = registrar.context();
         this.channel = new MethodChannel(registrar.messenger(), NAMESPACE + "/method");
         this.registrar = registrar;
@@ -60,7 +60,7 @@ public class FlutterNordicDfuPlugin implements MethodCallHandler {
     }
 
     public static void registerWith(Registrar registrar) {
-        FlutterNordicDfuPlugin instance = new FlutterNordicDfuPlugin(registrar);
+        NordicDfuPlugin instance = new NordicDfuPlugin(registrar);
         DfuServiceListenerHelper.registerProgressListener(registrar.context(), instance.mDfuProgressListener);
     }
 

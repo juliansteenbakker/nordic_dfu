@@ -1,6 +1,6 @@
-# flutter_nordic_dfu_example
+# nordic_dfu_example
 
-Demonstrates how to use the flutter_nordic_dfu plugin.
+Demonstrates how to use the nordic_dfu plugin.
 
 ## Getting Started
 

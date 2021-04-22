@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_nordic_dfu/flutter_nordic_dfu.dart';
+import 'package:nordic_dfu/nordic_dfu.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 
 void main() => runApp(MyApp());
@@ -27,7 +27,7 @@ class _MyAppState extends State<MyApp> {
     stopScan();
     dfuRunning = true;
     try {
-      var s = await FlutterNordicDfu.startDfu(
+      var s = await NordicDfu.startDfu(
         deviceId,
         'assets/file.zip',
         fileInAsset: true,
@@ -120,7 +120,7 @@ class _MyAppState extends State<MyApp> {
       scanResult: result,
       onPress: dfuRunning
           ? () async {
-              await FlutterNordicDfu.abortDfu();
+              await NordicDfu.abortDfu();
               setState(() {
                 dfuRunningInx = null;
               });

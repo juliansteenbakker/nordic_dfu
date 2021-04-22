@@ -1,4 +1,4 @@
-package com.timeyaa.flutternordicdfu;
+package dev.steenbakker.nordicdfu;
 
 import android.content.Context;
 

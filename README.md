@@ -1,4 +1,4 @@
-# flutter-nordic-dfu [![pub package](https://img.shields.io/pub/v/flutter_nordic_dfu.svg)](https://pub.dartlang.org/packages/flutter_nordic_dfu)
+# flutter-nordic-dfu [![pub package](https://img.shields.io/pub/v/nordic_dfu.svg)](https://pub.dartlang.org/packages/nordic_dfu)
 
 This library allows you to do a Device Firmware Update (DFU) of your nrf51 or
 nrf52 chip from Nordic Semiconductor. It works for Android and iOS fine.
@@ -24,13 +24,13 @@ For more info about the DFU process, see: [Resources](#resources)
 
 #### Examples
 
-You can pass an absolute file path or asset file to `FlutterNordicDfu`
+You can pass an absolute file path or asset file to `NordicDfu`
 
 ##### Use absolute file path
 
 ```dart
 /// You can define your ProgressListenerListener
-await FlutterNordicDfu.startDfu(
+await NordicDfu.startDfu(
             'EB:75:AD:E3:CA:CF', '/file/to/zip/path/file.zip',
             progressListener: ProgressListenerListener(),
          );
@@ -47,7 +47,7 @@ class ProgressListenerListener extends DfuProgressListenerAdapter {
 }
 
 /// Or you can use DefaultDfuProgressListenerAdapter
-await FlutterNordicDfu.startDfu(
+await NordicDfu.startDfu(
       'EB:75:AD:E3:CA:CF',
       'assets/file.zip',
       fileInAsset: true,
@@ -69,7 +69,7 @@ await FlutterNordicDfu.startDfu(
 
 ```dart
 /// just set [fileInAsset] true
-await FlutterNordicDfu.startDfu(
+await NordicDfu.startDfu(
             'EB:75:AD:E3:CA:CF', 'assets/file.zip',
             progressListener: ProgressListenerListener(),
             fileInAsset: true,

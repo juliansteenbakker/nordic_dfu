@@ -1,4 +1,4 @@
-package com.timeyaa.flutternordicdfuexample
+package dev.steenbakker.nordicdfuexample
 
 import android.os.Bundle
 
