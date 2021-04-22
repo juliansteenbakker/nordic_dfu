@@ -152,6 +152,7 @@ class NordicDfu {
         default:
           break;
       }
+      return;
     });
 
     return await _channel.invokeMethod('startDfu', <String, dynamic>{
@@ -169,7 +170,6 @@ class NordicDfu {
       'restoreBond': androidSpecialParameter?.restoreBond,
       'packetReceiptNotificationsEnabled':
           androidSpecialParameter?.packetReceiptNotificationsEnabled,
-      'restoreBond': androidSpecialParameter?.restoreBond,
       'startAsForegroundService':
           androidSpecialParameter?.startAsForegroundService,
       'alternativeAdvertisingNameEnabled':
