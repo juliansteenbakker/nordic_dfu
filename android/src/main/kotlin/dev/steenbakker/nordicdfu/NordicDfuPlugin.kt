@@ -1,292 +1,236 @@
-package dev.steenbakker.nordicdfu;
+package dev.steenbakker.nordicdfu
 
-import android.app.NotificationManager;
-import android.content.Context;
-import android.os.Build;
-import android.os.Handler;
+import android.app.NotificationManager
+import android.content.Context
+import android.os.Build
+import android.os.Handler
+import io.flutter.FlutterInjector
+import io.flutter.embedding.engine.plugins.FlutterPlugin
+import io.flutter.embedding.engine.plugins.FlutterPlugin.FlutterPluginBinding
+import io.flutter.plugin.common.MethodCall
+import io.flutter.plugin.common.MethodChannel
+import io.flutter.plugin.common.MethodChannel.MethodCallHandler
+import no.nordicsemi.android.dfu.*
+import no.nordicsemi.android.dfu.DfuBaseService.NOTIFICATION_ID
+import java.util.*
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
-import io.flutter.FlutterInjector;
-import io.flutter.embedding.engine.loader.FlutterLoader;
-import io.flutter.embedding.engine.plugins.FlutterPlugin;
-import io.flutter.plugin.common.MethodCall;
-import io.flutter.plugin.common.MethodChannel;
-import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
-import io.flutter.plugin.common.MethodChannel.Result;
-import no.nordicsemi.android.dfu.DfuProgressListenerAdapter;
-import no.nordicsemi.android.dfu.DfuServiceController;
-import no.nordicsemi.android.dfu.DfuServiceInitiator;
-import no.nordicsemi.android.dfu.DfuServiceListenerHelper;
-
-public class NordicDfuPlugin implements FlutterPlugin, MethodCallHandler {
-
+class NordicDfuPlugin : FlutterPlugin, MethodCallHandler {
     /**
      * hold context
      */
-    private Context mContext;
+    private var mContext: Context? = null
 
     /**
      * hold result
      */
-    private Result pendingResult;
+    private var pendingResult: MethodChannel.Result? = null
 
     /**
      * Method Channel
      */
-    private MethodChannel channel;
-
-    private DfuServiceController controller;
-
-    private boolean hasCreateNotification = false;
-
-    @Override
-    public void onAttachedToEngine(@NonNull FlutterPluginBinding binding) {
-        this.mContext = binding.getApplicationContext();
-        this.channel = new MethodChannel(binding.getBinaryMessenger(), "dev.steenbakker.nordic_dfu/method");
-        NordicDfuPlugin instance = new NordicDfuPlugin();
-        DfuServiceListenerHelper.registerProgressListener(this.mContext, instance.mDfuProgressListener);
+    private var channel: MethodChannel? = null
+    private var controller: DfuServiceController? = null
+    private var hasCreateNotification = false
+    override fun onAttachedToEngine(binding: FlutterPluginBinding) {
+        mContext = binding.applicationContext
+        channel = MethodChannel(binding.binaryMessenger, "dev.steenbakker.nordic_dfu/method")
+        val instance = NordicDfuPlugin()
+        DfuServiceListenerHelper.registerProgressListener(mContext!!, instance.mDfuProgressListener)
     }
 
-    @Override
-    public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
-        this.mContext = null;
-        this.channel = null;
+    override fun onDetachedFromEngine(binding: FlutterPluginBinding) {
+        mContext = null
+        channel = null
     }
 
-    public NordicDfuPlugin() {
-        channel.setMethodCallHandler(this);
-    }
-
-    @Override
-    public void onMethodCall(MethodCall call, @NonNull Result result) {
-        if (call.method.equals("startDfu")) {
-            String address = call.argument("address");
-            String name = call.argument("name");
-            String filePath = call.argument("filePath");
-            Boolean fileInAsset = call.argument("fileInAsset");
-            Boolean forceDfu = call.argument("forceDfu");
-            Boolean enableUnsafeExperimentalButtonlessServiceInSecureDfu = call.argument("enableUnsafeExperimentalButtonlessServiceInSecureDfu");
-            Boolean disableNotification = call.argument("disableNotification");
-            Boolean keepBond = call.argument("keepBond");
-            Boolean packetReceiptNotificationsEnabled = call.argument("packetReceiptNotificationsEnabled");
-            Boolean restoreBond = call.argument("restoreBond");
-            Boolean startAsForegroundService = call.argument("startAsForegroundService");
-            Integer numberOfPackets = call.argument("numberOfPackets");
-            Boolean enablePRNs = call.argument("enablePRNs");
-
+    override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
+        if (call.method == "startDfu") {
+            val address = call.argument<String>("address")
+            val name = call.argument<String>("name")
+            var filePath = call.argument<String>("filePath")
+            var fileInAsset = call.argument<Boolean>("fileInAsset")
+            val forceDfu = call.argument<Boolean>("forceDfu")
+            val enableUnsafeExperimentalButtonlessServiceInSecureDfu = call.argument<Boolean>("enableUnsafeExperimentalButtonlessServiceInSecureDfu")
+            val disableNotification = call.argument<Boolean>("disableNotification")
+            val keepBond = call.argument<Boolean>("keepBond")
+            val packetReceiptNotificationsEnabled = call.argument<Boolean>("packetReceiptNotificationsEnabled")
+            val restoreBond = call.argument<Boolean>("restoreBond")
+            val startAsForegroundService = call.argument<Boolean>("startAsForegroundService")
+            val numberOfPackets = call.argument<Int>("numberOfPackets")
+            val enablePRNs = call.argument<Boolean>("enablePRNs")
             if (fileInAsset == null) {
-                fileInAsset = false;
+                fileInAsset = false
             }
-
             if (address == null || filePath == null) {
-                result.error("Abnormal parameter", "address and filePath are required", null);
-                return;
+                result.error("Abnormal parameter", "address and filePath are required", null)
+                return
             }
-
             if (fileInAsset) {
-                FlutterLoader loader = FlutterInjector.instance().flutterLoader();
-                filePath = loader.getLookupKeyForAsset(filePath);
-                String tempFileName = PathUtils.getExternalAppCachePath(mContext)
-                        + UUID.randomUUID().toString();
+                val loader = FlutterInjector.instance().flutterLoader()
+                filePath = loader.getLookupKeyForAsset(filePath)
+                val tempFileName = (PathUtils.getExternalAppCachePath(mContext!!)
+                        + UUID.randomUUID().toString())
                 // copy asset file to temp path
-                ResourceUtils.copyFileFromAssets(filePath, tempFileName, mContext);
+                ResourceUtils.copyFileFromAssets(filePath, tempFileName, mContext!!)
                 // now, the path is an absolute path, and can pass it to nordic dfu libarary
-                filePath = tempFileName;
+                filePath = tempFileName
             }
-
-            pendingResult = result;
-            startDfu(address, name, filePath, forceDfu, enableUnsafeExperimentalButtonlessServiceInSecureDfu, disableNotification, keepBond, packetReceiptNotificationsEnabled, restoreBond, startAsForegroundService, result,numberOfPackets,enablePRNs);
-        } else if (call.method.equals("abortDfu")) {
+            pendingResult = result
+            startDfu(address, name, filePath, forceDfu, enableUnsafeExperimentalButtonlessServiceInSecureDfu, disableNotification, keepBond, packetReceiptNotificationsEnabled, restoreBond, startAsForegroundService, result, numberOfPackets, enablePRNs)
+        } else if (call.method == "abortDfu") {
             if (controller != null) {
-                controller.abort();
+                controller!!.abort()
             }
         } else {
-            result.notImplemented();
+            result.notImplemented()
         }
     }
 
     /**
      * Start Dfu
      */
-    private void startDfu(String address, @Nullable String name, String filePath, Boolean forceDfu, Boolean enableUnsafeExperimentalButtonlessServiceInSecureDfu, Boolean disableNotification, Boolean keepBond, Boolean packetReceiptNotificationsEnabled, Boolean restoreBond, Boolean startAsForegroundService, Result result,Integer numberOfPackets,Boolean enablePRNs) {
-
-        DfuServiceInitiator starter = new DfuServiceInitiator(address)
-                .setZip(filePath)
+    private fun startDfu(address: String, name: String?, filePath: String?, forceDfu: Boolean?, enableUnsafeExperimentalButtonlessServiceInSecureDfu: Boolean?, disableNotification: Boolean?, keepBond: Boolean?, packetReceiptNotificationsEnabled: Boolean?, restoreBond: Boolean?, startAsForegroundService: Boolean?, result: MethodChannel.Result, numberOfPackets: Int?, enablePRNs: Boolean?) {
+        val starter = DfuServiceInitiator(address)
+                .setZip(filePath!!)
                 .setKeepBond(true)
-                .setForceDfu(forceDfu == null ? false:forceDfu)
-                .setPacketsReceiptNotificationsEnabled(enablePRNs == null ? Build.VERSION.SDK_INT < Build.VERSION_CODES.M:enablePRNs)
-                .setPacketsReceiptNotificationsValue(numberOfPackets== null ? 0 :numberOfPackets)
+                .setForceDfu(forceDfu ?: false)
+                .setPacketsReceiptNotificationsEnabled(enablePRNs
+                        ?: (Build.VERSION.SDK_INT < Build.VERSION_CODES.M))
+                .setPacketsReceiptNotificationsValue(numberOfPackets ?: 0)
                 .setPrepareDataObjectDelay(400)
-                .setUnsafeExperimentalButtonlessServiceInSecureDfuEnabled(true);
+                .setUnsafeExperimentalButtonlessServiceInSecureDfuEnabled(true)
         if (name != null) {
-            starter.setDeviceName(name);
+            starter.setDeviceName(name)
         }
-
-        pendingResult = result;
-
+        pendingResult = result
         if (enableUnsafeExperimentalButtonlessServiceInSecureDfu != null) {
-            starter.setUnsafeExperimentalButtonlessServiceInSecureDfuEnabled(enableUnsafeExperimentalButtonlessServiceInSecureDfu);
+            starter.setUnsafeExperimentalButtonlessServiceInSecureDfuEnabled(enableUnsafeExperimentalButtonlessServiceInSecureDfu)
         }
-
         if (forceDfu != null) {
-            starter.setForceDfu(forceDfu);
+            starter.setForceDfu(forceDfu)
         }
-
         if (disableNotification != null) {
-            starter.setDisableNotification(disableNotification);
+            starter.setDisableNotification(disableNotification)
         }
-
         if (startAsForegroundService != null) {
-            starter.setForeground(startAsForegroundService);
+            starter.setForeground(startAsForegroundService)
         }
-
         if (keepBond != null) {
-            starter.setKeepBond(keepBond);
+            starter.setKeepBond(keepBond)
         }
-
         if (restoreBond != null) {
-            starter.setRestoreBond(restoreBond);
+            starter.setRestoreBond(restoreBond)
         }
-
         if (packetReceiptNotificationsEnabled != null) {
-            starter.setPacketsReceiptNotificationsEnabled(packetReceiptNotificationsEnabled);
+            starter.setPacketsReceiptNotificationsEnabled(packetReceiptNotificationsEnabled)
         }
 
         // fix notification on android 8 and above
         if (startAsForegroundService == null || startAsForegroundService) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !hasCreateNotification) {
-                DfuServiceInitiator.createDfuNotificationChannel(mContext);
-                hasCreateNotification = true;
+                DfuServiceInitiator.createDfuNotificationChannel(mContext!!)
+                hasCreateNotification = true
             }
         }
-
-        controller = starter.start(mContext, DfuService.class);
+        controller = starter.start(mContext!!, DfuService::class.java)
     }
 
-    private final DfuProgressListenerAdapter mDfuProgressListener = new DfuProgressListenerAdapter() {
-        @Override
-        public void onDeviceConnected(@NonNull String deviceAddress) {
-            super.onDeviceConnected(deviceAddress);
-            channel.invokeMethod("onDeviceConnected", deviceAddress);
+    private val mDfuProgressListener: DfuProgressListenerAdapter = object : DfuProgressListenerAdapter() {
+        override fun onDeviceConnected(deviceAddress: String) {
+            super.onDeviceConnected(deviceAddress)
+            channel!!.invokeMethod("onDeviceConnected", deviceAddress)
         }
 
-        @Override
-        public void onError(@NonNull String deviceAddress, int error, int errorType, String message) {
-            super.onError(deviceAddress, error, errorType, message);
-            cancelNotification();
-
-            channel.invokeMethod("onError", deviceAddress);
-
+        override fun onError(deviceAddress: String, error: Int, errorType: Int, message: String) {
+            super.onError(deviceAddress, error, errorType, message)
+            cancelNotification()
+            channel!!.invokeMethod("onError", deviceAddress)
             if (pendingResult != null) {
-                pendingResult.error("2", "DFU FAILED", "device address: " + deviceAddress);
-                pendingResult = null;
+                pendingResult!!.error("2", "DFU FAILED", "device address: $deviceAddress")
+                pendingResult = null
             }
         }
 
-        @Override
-        public void onDeviceConnecting(@NonNull String deviceAddress) {
-            super.onDeviceConnecting(deviceAddress);
-            channel.invokeMethod("onDeviceConnecting", deviceAddress);
+        override fun onDeviceConnecting(deviceAddress: String) {
+            super.onDeviceConnecting(deviceAddress)
+            channel!!.invokeMethod("onDeviceConnecting", deviceAddress)
         }
 
-        @Override
-        public void onDeviceDisconnected(@NonNull String deviceAddress) {
-            super.onDeviceDisconnected(deviceAddress);
-            channel.invokeMethod("onDeviceDisconnected", deviceAddress);
+        override fun onDeviceDisconnected(deviceAddress: String) {
+            super.onDeviceDisconnected(deviceAddress)
+            channel!!.invokeMethod("onDeviceDisconnected", deviceAddress)
         }
 
-        @Override
-        public void onDeviceDisconnecting(String deviceAddress) {
-            super.onDeviceDisconnecting(deviceAddress);
-            channel.invokeMethod("onDeviceDisconnecting", deviceAddress);
+        override fun onDeviceDisconnecting(deviceAddress: String) {
+            super.onDeviceDisconnecting(deviceAddress)
+            channel!!.invokeMethod("onDeviceDisconnecting", deviceAddress)
         }
 
-        @Override
-        public void onDfuAborted(@NonNull String deviceAddress) {
-            super.onDfuAborted(deviceAddress);
-            cancelNotification();
-
+        override fun onDfuAborted(deviceAddress: String) {
+            super.onDfuAborted(deviceAddress)
+            cancelNotification()
             if (pendingResult != null) {
-                pendingResult.error("2", "DFU ABORTED", "device address: " + deviceAddress);
-                pendingResult = null;
+                pendingResult!!.error("2", "DFU ABORTED", "device address: $deviceAddress")
+                pendingResult = null
             }
-
-
-            channel.invokeMethod("onDfuAborted", deviceAddress);
+            channel!!.invokeMethod("onDfuAborted", deviceAddress)
         }
 
-        @Override
-        public void onDfuCompleted(@NonNull String deviceAddress) {
-            super.onDfuCompleted(deviceAddress);
-            cancelNotification();
-
+        override fun onDfuCompleted(deviceAddress: String) {
+            super.onDfuCompleted(deviceAddress)
+            cancelNotification()
             if (pendingResult != null) {
-                pendingResult.success(deviceAddress);
-                pendingResult = null;
+                pendingResult!!.success(deviceAddress)
+                pendingResult = null
             }
-
-
-            channel.invokeMethod("onDfuCompleted", deviceAddress);
+            channel!!.invokeMethod("onDfuCompleted", deviceAddress)
         }
 
-        @Override
-        public void onDfuProcessStarted(@NonNull String deviceAddress) {
-            super.onDfuProcessStarted(deviceAddress);
-            channel.invokeMethod("onDfuProcessStarted", deviceAddress);
+        override fun onDfuProcessStarted(deviceAddress: String) {
+            super.onDfuProcessStarted(deviceAddress)
+            channel!!.invokeMethod("onDfuProcessStarted", deviceAddress)
         }
 
-        @Override
-        public void onDfuProcessStarting(@NonNull String deviceAddress) {
-            super.onDfuProcessStarting(deviceAddress);
-            channel.invokeMethod("onDfuProcessStarting", deviceAddress);
+        override fun onDfuProcessStarting(deviceAddress: String) {
+            super.onDfuProcessStarting(deviceAddress)
+            channel!!.invokeMethod("onDfuProcessStarting", deviceAddress)
         }
 
-        @Override
-        public void onEnablingDfuMode(@NonNull String deviceAddress) {
-            super.onEnablingDfuMode(deviceAddress);
-            channel.invokeMethod("onEnablingDfuMode", deviceAddress);
+        override fun onEnablingDfuMode(deviceAddress: String) {
+            super.onEnablingDfuMode(deviceAddress)
+            channel!!.invokeMethod("onEnablingDfuMode", deviceAddress)
         }
 
-        @Override
-        public void onFirmwareValidating(@NonNull String deviceAddress) {
-            super.onFirmwareValidating(deviceAddress);
-            channel.invokeMethod("onFirmwareValidating", deviceAddress);
+        override fun onFirmwareValidating(deviceAddress: String) {
+            super.onFirmwareValidating(deviceAddress)
+            channel!!.invokeMethod("onFirmwareValidating", deviceAddress)
         }
 
-        @Override
-        public void onProgressChanged(@NonNull final String deviceAddress, final int percent, final float speed, final float avgSpeed, final int currentPart, final int partsTotal) {
-            super.onProgressChanged(deviceAddress, percent, speed, avgSpeed, currentPart, partsTotal);
-
-            Map<String, Object> paras = new HashMap<String, Object>() {{
-                put("percent", percent);
-                put("speed", speed);
-                put("avgSpeed", avgSpeed);
-                put("currentPart", currentPart);
-                put("partsTotal", partsTotal);
-                put("deviceAddress", deviceAddress);
-            }};
-
-            channel.invokeMethod("onProgressChanged", paras);
+        override fun onProgressChanged(deviceAddress: String, percent: Int, speed: Float, avgSpeed: Float, currentPart: Int, partsTotal: Int) {
+            super.onProgressChanged(deviceAddress, percent, speed, avgSpeed, currentPart, partsTotal)
+            val paras: HashMap<String?, Any?> = object : HashMap<String?, Any?>() {
+                init {
+                    put("percent", percent)
+                    put("speed", speed)
+                    put("avgSpeed", avgSpeed)
+                    put("currentPart", currentPart)
+                    put("partsTotal", partsTotal)
+                    put("deviceAddress", deviceAddress)
+                }
+            }
+            channel!!.invokeMethod("onProgressChanged", paras)
         }
-    };
+    }
 
-    private void cancelNotification() {
+    private fun cancelNotification() {
         // let's wait a bit until we cancel the notification. When canceled immediately it will be recreated by service again.
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                final NotificationManager manager = (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
-                if (manager != null)
-                    manager.cancel(DfuService.NOTIFICATION_ID);
-            }
-        }, 200);
+        Handler().postDelayed({
+            val manager = mContext!!.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            manager.cancel(NOTIFICATION_ID)
+        }, 200)
     }
 
+    init {
+        channel!!.setMethodCallHandler(this)
+    }
 }
-

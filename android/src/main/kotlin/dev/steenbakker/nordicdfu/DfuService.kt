@@ -1,20 +1,17 @@
-package dev.steenbakker.nordicdfu;
+package dev.steenbakker.nordicdfu
 
-import android.app.Activity;
+import android.app.Activity
+import no.nordicsemi.android.dfu.DfuBaseService
 
-import no.nordicsemi.android.dfu.DfuBaseService;
-
-public class DfuService extends DfuBaseService {
-    @Override
-    protected Class<? extends Activity> getNotificationTarget() {
-        return NotificationActivity.class;
+class DfuService : DfuBaseService() {
+    override fun getNotificationTarget(): Class<out Activity?> {
+        return NotificationActivity::class.java
     }
 
-    @Override
-    protected boolean isDebug() {
+    override fun isDebug(): Boolean {
         // Override this method and return true if you need more logs in LogCat
         // Note: BuildConfig.DEBUG always returns false in library projects, so please use
         // your app package BuildConfig
-        return true;
+        return true
     }
 }

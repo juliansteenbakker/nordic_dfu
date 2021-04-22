@@ -1,27 +1,23 @@
-package dev.steenbakker.nordicdfu;
+package dev.steenbakker.nordicdfu
 
-import android.content.Context;
-import android.os.Environment;
+import android.content.Context
+import android.os.Environment
+import java.io.File
 
-import java.io.File;
-
-public class PathUtils {
+object PathUtils {
     /**
      * Return the path of /storage/emulated/0/Android/data/package/cache.
      *
      * @return the path of /storage/emulated/0/Android/data/package/cache
      */
-    public static String getExternalAppCachePath(Context context) {
-        if (isExternalStorageDisable()) return "";
-        return getAbsolutePath(context.getApplicationContext().getExternalCacheDir());
+    fun getExternalAppCachePath(context: Context): String {
+        return if (isExternalStorageDisable) "" else getAbsolutePath(context.applicationContext.externalCacheDir)
     }
 
-    private static boolean isExternalStorageDisable() {
-        return !Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState());
-    }
+    private val isExternalStorageDisable: Boolean
+        get() = Environment.MEDIA_MOUNTED != Environment.getExternalStorageState()
 
-    private static String getAbsolutePath(final File file) {
-        if (file == null) return "";
-        return file.getAbsolutePath();
+    private fun getAbsolutePath(file: File?): String {
+        return if (file == null) "" else file.absolutePath
     }
 }
