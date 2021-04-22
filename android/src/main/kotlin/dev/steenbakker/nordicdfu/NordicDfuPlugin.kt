@@ -34,6 +34,7 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler {
     override fun onAttachedToEngine(binding: FlutterPluginBinding) {
         mContext = binding.applicationContext
         channel = MethodChannel(binding.binaryMessenger, "dev.steenbakker.nordic_dfu/method")
+        channel!!.setMethodCallHandler(this)
         val instance = NordicDfuPlugin()
         DfuServiceListenerHelper.registerProgressListener(mContext!!, instance.mDfuProgressListener)
     }
@@ -230,7 +231,4 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler {
         }, 200)
     }
 
-    init {
-        channel!!.setMethodCallHandler(this)
-    }
 }
