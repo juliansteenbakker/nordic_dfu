@@ -81,7 +81,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     final isScanning = scanSubscription != null;
-    final hasDevice = scanResults.length > 0;
+    final hasDevice = scanResults.isNotEmpty;
 
     return MaterialApp(
       home: Scaffold(
@@ -101,7 +101,7 @@ class _MyAppState extends State<MyApp> {
         ),
         body: !hasDevice
             ? const Center(
-                child: const Text('No device'),
+                child: Text('No device'),
               )
             : ListView.separated(
                 padding: const EdgeInsets.all(8),
@@ -129,7 +129,7 @@ class _MyAppState extends State<MyApp> {
               setState(() {
                 dfuRunningInx = index;
               });
-              await this.doDfu(result.device.id.id);
+              await doDfu(result.device.id.id);
               setState(() {
                 dfuRunningInx = null;
               });
@@ -159,8 +159,8 @@ class DeviceItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var name = "Unknow";
-    if (scanResult.device.name != null && scanResult.device.name.length > 0) {
+    var name = 'Unknown';
+    if (scanResult.device.name != null && scanResult.device.name.isNotEmpty) {
       name = scanResult.device.name;
     }
     return Card(
@@ -175,13 +175,13 @@ class DeviceItem extends StatelessWidget {
                 children: <Widget>[
                   Text(name),
                   Text(scanResult.device.id.id),
-                  Text("RSSI: ${scanResult.rssi}"),
+                  Text('RSSI: ${scanResult.rssi}'),
                 ],
               ),
             ),
             TextButton(
                 onPressed: onPress,
-                child: isRunningItem ? Text("Abort Dfu") : Text("Start Dfu"))
+                child: isRunningItem ? Text('Abort Dfu') : Text('Start Dfu'))
           ],
         ),
       ),

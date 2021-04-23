@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 /// Some parameter just use in Android
 /// All this parameters can see in <a href="https://github.com/NordicSemiconductor/Android-DFU-Library">
 class AndroidSpecialParameter {
+
   ///Sets whether the progress notification in the status bar should be disabled.
   ///Defaults to false.
   final bool disableNotification;
@@ -70,7 +71,7 @@ class NordicDfu {
   static const String NAMESPACE = 'dev.steenbakker.nordic_dfu';
 
   static const MethodChannel _channel =
-      const MethodChannel('$NAMESPACE/method');
+      MethodChannel('$NAMESPACE/method');
 
   /// Start dfu handle
   /// [address] android: mac address iOS: device uuid
@@ -78,8 +79,8 @@ class NordicDfu {
   /// [name] device name
   /// [progressListener] Dfu progress listener, You can use [DefaultDfuProgressListenerAdapter]
   /// [fileInAsset] if [filePath] is a asset path like 'asset/file.zip', must set this value to true, else false
-  /// [forceDfu] Legacy DFU only, see in nordic libarary, default is false
-  /// [enableUnsafeExperimentalButtonlessServiceInSecureDfu] see in nordic libarary, default is false
+  /// [forceDfu] Legacy DFU only, see in nordic library, default is false
+  /// [enableUnsafeExperimentalButtonlessServiceInSecureDfu] see in nordic library, default is false
   /// [androidSpecialParameter] this parameters is only used by android lib
   /// [iosSpecialParameter] this parameters is only used by ios lib
   static Future<String> startDfu(
@@ -96,42 +97,42 @@ class NordicDfu {
         const AndroidSpecialParameter(),
     IosSpecialParameter iosSpecialParameter = const IosSpecialParameter(),
   }) async {
-    assert(address != null, "address can not be null");
-    assert(filePath != null, "file can not be null");
+    assert(address != null, 'address can not be null');
+    assert(filePath != null, 'file can not be null');
 
     _channel.setMethodCallHandler((MethodCall call) {
       switch (call.method) {
-        case "onDeviceConnected":
+        case 'onDeviceConnected':
           progressListener?.onDeviceConnected(call.arguments);
           break;
-        case "onDeviceConnecting":
+        case 'onDeviceConnecting':
           progressListener?.onDeviceConnecting(call.arguments);
           break;
-        case "onDeviceDisconnected":
+        case 'onDeviceDisconnected':
           progressListener?.onDeviceDisconnected(call.arguments);
           break;
-        case "onDeviceDisconnecting":
+        case 'onDeviceDisconnecting':
           progressListener?.onDeviceDisconnecting(call.arguments);
           break;
-        case "onDfuAborted":
+        case 'onDfuAborted':
           progressListener?.onDfuAborted(call.arguments);
           break;
-        case "onDfuCompleted":
+        case 'onDfuCompleted':
           progressListener?.onDfuCompleted(call.arguments);
           break;
-        case "onDfuProcessStarted":
+        case 'onDfuProcessStarted':
           progressListener?.onDfuProcessStarted(call.arguments);
           break;
-        case "onDfuProcessStarting":
+        case 'onDfuProcessStarting':
           progressListener?.onDfuProcessStarting(call.arguments);
           break;
-        case "onEnablingDfuMode":
+        case 'onEnablingDfuMode':
           progressListener?.onEnablingDfuMode(call.arguments);
           break;
-        case "onFirmwareValidating":
+        case 'onFirmwareValidating':
           progressListener?.onFirmwareValidating(call.arguments);
           break;
-        case "onError":
+        case 'onError':
           progressListener?.onError(
             call.arguments['deviceAddress'],
             call.arguments['error'],
@@ -139,7 +140,7 @@ class NordicDfu {
             call.arguments['message'],
           );
           break;
-        case "onProgressChanged":
+        case 'onProgressChanged':
           progressListener?.onProgressChanged(
             call.arguments['deviceAddress'],
             call.arguments['percent'],
@@ -365,6 +366,7 @@ class DefaultDfuProgressListenerAdapter extends DfuProgressListenerAdapter {
     }
   }
 
+  @override
   void onProgressChanged(
     String deviceAddress,
     int percent,
