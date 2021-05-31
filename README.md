@@ -1,6 +1,7 @@
 # nordic-dfu [![pub package](https://img.shields.io/pub/v/nordic_dfu.svg)](https://pub.dev/packages/nordic_dfu)
 
-Fork from [flutter_nordic_dfu](https://pub.dev/packages/flutter_nordic_dfu)
+Fork from [flutter_nordic_dfu](https://pub.dev/packages/flutter_nordic_dfu).
+
 This library allows you to do a Device Firmware Update (DFU) of your nrf51 or
 nrf52 chip from Nordic Semiconductor. It works for Android and iOS.
 
