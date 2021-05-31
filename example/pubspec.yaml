@@ -3,13 +3,14 @@ description: Demonstrates how to use the nordic_dfu plugin.
 publish_to: 'none'
 
 environment:
-  sdk: ">=2.0.0-dev.68.0 <3.0.0"
+  sdk: '>=2.12.0 <3.0.0'
 
 dependencies:
   flutter:
     sdk: flutter
 
   flutter_blue: ^0.8.0
+  collection: ^1.15.0
 
 dev_dependencies:
   pedantic: ^1.11.0
