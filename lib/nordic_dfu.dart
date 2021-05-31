@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 /// Some parameter just use in Android
 /// All this parameters can see in <a href="https://github.com/NordicSemiconductor/Android-DFU-Library">
 class AndroidSpecialParameter {
-
   ///Sets whether the progress notification in the status bar should be disabled.
   ///Defaults to false.
   final bool? disableNotification;
@@ -70,8 +69,7 @@ class IosSpecialParameter {
 class NordicDfu {
   static const String NAMESPACE = 'dev.steenbakker.nordic_dfu';
 
-  static const MethodChannel _channel =
-  MethodChannel('$NAMESPACE/method');
+  static const MethodChannel _channel = MethodChannel('$NAMESPACE/method');
 
   /// Start dfu handle
   /// [address] android: mac address iOS: device uuid
@@ -84,20 +82,19 @@ class NordicDfu {
   /// [androidSpecialParameter] this parameters is only used by android lib
   /// [iosSpecialParameter] this parameters is only used by ios lib
   static Future<String?> startDfu(
-      String address,
-      String filePath, {
-        String? name,
-        DfuProgressListenerAdapter? progressListener,
-        bool? fileInAsset,
-        bool? forceDfu,
-        bool? enablePRNs,
-        int? numberOfPackets,
-        bool? enableUnsafeExperimentalButtonlessServiceInSecureDfu,
-        AndroidSpecialParameter androidSpecialParameter =
+    String address,
+    String filePath, {
+    String? name,
+    DfuProgressListenerAdapter? progressListener,
+    bool? fileInAsset,
+    bool? forceDfu,
+    bool? enablePRNs,
+    int? numberOfPackets,
+    bool? enableUnsafeExperimentalButtonlessServiceInSecureDfu,
+    AndroidSpecialParameter androidSpecialParameter =
         const AndroidSpecialParameter(),
-        IosSpecialParameter iosSpecialParameter = const IosSpecialParameter(),
-      }) async {
-
+    IosSpecialParameter iosSpecialParameter = const IosSpecialParameter(),
+  }) async {
     _channel.setMethodCallHandler((MethodCall call) {
       switch (call.method) {
         case 'onDeviceConnected':
@@ -163,16 +160,16 @@ class NordicDfu {
       'enablePRNs': enablePRNs,
       'numberOfPackets': numberOfPackets,
       'enableUnsafeExperimentalButtonlessServiceInSecureDfu':
-      enableUnsafeExperimentalButtonlessServiceInSecureDfu,
+          enableUnsafeExperimentalButtonlessServiceInSecureDfu,
       'disableNotification': androidSpecialParameter.disableNotification,
       'keepBond': androidSpecialParameter.keepBond,
       'restoreBond': androidSpecialParameter.restoreBond,
       'packetReceiptNotificationsEnabled':
-      androidSpecialParameter.packetReceiptNotificationsEnabled,
+          androidSpecialParameter.packetReceiptNotificationsEnabled,
       'startAsForegroundService':
-      androidSpecialParameter.startAsForegroundService,
+          androidSpecialParameter.startAsForegroundService,
       'alternativeAdvertisingNameEnabled':
-      iosSpecialParameter.alternativeAdvertisingNameEnabled,
+          iosSpecialParameter.alternativeAdvertisingNameEnabled,
     });
   }
 
@@ -203,20 +200,20 @@ abstract class DfuProgressListenerAdapter {
   void onFirmwareValidating(String? deviceAddress) {}
 
   void onError(
-      String? deviceAddress,
-      int? error,
-      int? errorType,
-      String? message,
-      ) {}
+    String? deviceAddress,
+    int? error,
+    int? errorType,
+    String? message,
+  ) {}
 
   void onProgressChanged(
-      String? deviceAddress,
-      int? percent,
-      double? speed,
-      double? avgSpeed,
-      int? currentPart,
-      int? partsTotal,
-      ) {}
+    String? deviceAddress,
+    int? percent,
+    double? speed,
+    double? avgSpeed,
+    int? currentPart,
+    int? partsTotal,
+  ) {}
 }
 
 class DefaultDfuProgressListenerAdapter extends DfuProgressListenerAdapter {
@@ -240,11 +237,17 @@ class DefaultDfuProgressListenerAdapter extends DfuProgressListenerAdapter {
 
   void Function(String? deviceAddress)? onFirmwareValidatingHandle;
 
-  void Function(String? deviceAddress, int? error, int? errorType, String? message)?
-  onErrorHandle;
+  void Function(
+          String? deviceAddress, int? error, int? errorType, String? message)?
+      onErrorHandle;
 
-  void Function(String? deviceAddress, int? percent, double? speed,
-      double? avgSpeed, int? currentPart, int? partsTotal)? onProgressChangedHandle;
+  void Function(
+      String? deviceAddress,
+      int? percent,
+      double? speed,
+      double? avgSpeed,
+      int? currentPart,
+      int? partsTotal)? onProgressChangedHandle;
 
   DefaultDfuProgressListenerAdapter({
     this.onDeviceConnectedHandle,
@@ -343,11 +346,11 @@ class DefaultDfuProgressListenerAdapter extends DfuProgressListenerAdapter {
 
   @override
   void onError(
-      String? deviceAddress,
-      int? error,
-      int? errorType,
-      String? message,
-      ) {
+    String? deviceAddress,
+    int? error,
+    int? errorType,
+    String? message,
+  ) {
     super.onError(
       deviceAddress,
       error,
@@ -366,13 +369,13 @@ class DefaultDfuProgressListenerAdapter extends DfuProgressListenerAdapter {
 
   @override
   void onProgressChanged(
-      String? deviceAddress,
-      int? percent,
-      double? speed,
-      double? avgSpeed,
-      int? currentPart,
-      int? partsTotal,
-      ) {
+    String? deviceAddress,
+    int? percent,
+    double? speed,
+    double? avgSpeed,
+    int? currentPart,
+    int? partsTotal,
+  ) {
     super.onProgressChanged(
       deviceAddress,
       percent,

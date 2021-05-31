@@ -33,14 +33,14 @@ class _MyAppState extends State<MyApp> {
         'assets/file.zip',
         fileInAsset: true,
         progressListener:
-        DefaultDfuProgressListenerAdapter(onProgressChangedHandle: (
-            deviceAddress,
-            percent,
-            speed,
-            avgSpeed,
-            currentPart,
-            partsTotal,
-            ) {
+            DefaultDfuProgressListenerAdapter(onProgressChangedHandle: (
+          deviceAddress,
+          percent,
+          speed,
+          avgSpeed,
+          currentPart,
+          partsTotal,
+        ) {
           print('deviceAddress: $deviceAddress, percent: $percent');
         }),
       );
@@ -57,7 +57,7 @@ class _MyAppState extends State<MyApp> {
     setState(() {
       scanResults.clear();
       scanSubscription = flutterBlue.scan().listen(
-            (scanResult) {
+        (scanResult) {
           if (scanResults.firstWhereOrNull(
                   (ele) => ele.device.id == scanResult.device.id) !=
               null) {
@@ -91,25 +91,25 @@ class _MyAppState extends State<MyApp> {
           actions: <Widget>[
             isScanning
                 ? IconButton(
-              icon: Icon(Icons.pause_circle_filled),
-              onPressed: dfuRunning ? null : stopScan,
-            )
+                    icon: Icon(Icons.pause_circle_filled),
+                    onPressed: dfuRunning ? null : stopScan,
+                  )
                 : IconButton(
-              icon: Icon(Icons.play_arrow),
-              onPressed: dfuRunning ? null : startScan,
-            )
+                    icon: Icon(Icons.play_arrow),
+                    onPressed: dfuRunning ? null : startScan,
+                  )
           ],
         ),
         body: !hasDevice
             ? const Center(
-          child: Text('No device'),
-        )
+                child: Text('No device'),
+              )
             : ListView.separated(
-          padding: const EdgeInsets.all(8),
-          itemBuilder: _deviceItemBuilder,
-          separatorBuilder: (context, index) => const SizedBox(height: 5),
-          itemCount: scanResults.length,
-        ),
+                padding: const EdgeInsets.all(8),
+                itemBuilder: _deviceItemBuilder,
+                separatorBuilder: (context, index) => const SizedBox(height: 5),
+                itemCount: scanResults.length,
+              ),
       ),
     );
   }
@@ -121,20 +121,20 @@ class _MyAppState extends State<MyApp> {
       scanResult: result,
       onPress: dfuRunning
           ? () async {
-        await NordicDfu.abortDfu();
-        setState(() {
-          dfuRunningInx = null;
-        });
-      }
+              await NordicDfu.abortDfu();
+              setState(() {
+                dfuRunningInx = null;
+              });
+            }
           : () async {
-        setState(() {
-          dfuRunningInx = index;
-        });
-        await doDfu(result.device.id.id);
-        setState(() {
-          dfuRunningInx = null;
-        });
-      },
+              setState(() {
+                dfuRunningInx = index;
+              });
+              await doDfu(result.device.id.id);
+              setState(() {
+                dfuRunningInx = null;
+              });
+            },
     );
   }
 }
