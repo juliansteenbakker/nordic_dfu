@@ -179,26 +179,48 @@ class NordicDfu {
 }
 
 abstract class DfuProgressListenerAdapter {
+  /// Callback for when device is connected
+  /// [deviceAddress] Device connected to
   void onDeviceConnected(String? deviceAddress) {}
 
+  /// Callback for when device is connecting
+  /// [deviceAddress] Device connecting to
   void onDeviceConnecting(String? deviceAddress) {}
 
+  /// Callback for when device is disconnected
+  /// [deviceAddress] Device disconnected from
   void onDeviceDisconnected(String? deviceAddress) {}
 
+  /// Callback for when device is disconnecting
+  /// [deviceAddress] Device disconnecting from
   void onDeviceDisconnecting(String? deviceAddress) {}
 
+  /// Callback for dfu is Aborted
+  /// [deviceAddress] Device aborted from
   void onDfuAborted(String? deviceAddress) {}
 
+  /// Callback for when dfu is completed
+  /// [deviceAddress] Device
   void onDfuCompleted(String? deviceAddress) {}
 
+  /// Callback for when dfu has been started
+  /// [deviceAddress] Device with dfu
   void onDfuProcessStarted(String? deviceAddress) {}
 
+  /// Callback for when dfu is starting
+  /// [deviceAddress] Device with dfu
   void onDfuProcessStarting(String? deviceAddress) {}
 
+  /// Callback for when dfu mode is being enabled
+  /// [deviceAddress] Device with dfu
   void onEnablingDfuMode(String? deviceAddress) {}
 
+  /// Callback for when dfu is being verified
+  /// [deviceAddress] Device from which dfu is being verified
   void onFirmwareValidating(String? deviceAddress) {}
 
+  /// Callback for when dfu has error
+  /// [deviceAddress] Device with error
   void onError(
     String? deviceAddress,
     int? error,
@@ -206,6 +228,13 @@ abstract class DfuProgressListenerAdapter {
     String? message,
   ) {}
 
+  /// Callback for when the dfu progress has changed
+  /// [deviceAddress] Device with dfu
+  /// [percent] Percentage dfu completed
+  /// [speed] Speed of the dfu proces
+  /// [avgSpeed] Average speed of the dfu process
+  /// [currentPart] Current part being uploaded
+  /// [partsTotal] All parts that need to be uploaded
   void onProgressChanged(
     String? deviceAddress,
     int? percent,
