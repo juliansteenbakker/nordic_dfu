@@ -3,8 +3,8 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'nordic_dfu'
-  s.version          = '0.0.1'
-  s.summary          = 'A new flutter plugin project.'
+  s.version          = '1.0.0'
+  s.summary          = 'iOS DFU plugin for flutter.'
   s.description      = <<-DESC
 A new flutter plugin project.
                        DESC
@@ -14,9 +14,9 @@ A new flutter plugin project.
   s.source           = { :path => '.' }
   s.source_files = 'Classes/**/*'
   s.public_header_files = 'Classes/**/*.h'
-  s.swift_version    = '5.0'
+  s.swift_version    = '5.4'
   s.dependency 'Flutter'
-  s.dependency 'iOSDFULibrary', '~> 4.9.0'
+  s.dependency 'iOSDFULibrary', '~> 4.10.3'
 
   s.ios.deployment_target = '9.0'
 end
