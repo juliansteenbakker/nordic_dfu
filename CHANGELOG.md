@@ -1,3 +1,7 @@
+## 3.1.0
+* Upgraded iOS Pod to 4.10.3
+* Added api docs
+
 ## 3.0.0
 * Upgraded to null-safety
 * Upgraded to Android Embedding V2
