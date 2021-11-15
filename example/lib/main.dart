@@ -5,9 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:nordic_dfu/nordic_dfu.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 
-void main() => runApp(MyApp());
+void main() => runApp(const MyApp());
 
 class MyApp extends StatefulWidget {
+  const MyApp({Key? key}) : super(key: key);
+
   @override
   _MyAppState createState() => _MyAppState();
 }
@@ -41,14 +43,14 @@ class _MyAppState extends State<MyApp> {
           currentPart,
           partsTotal,
         ) {
-          print('deviceAddress: $deviceAddress, percent: $percent');
+          debugPrint('deviceAddress: $deviceAddress, percent: $percent');
         }),
       );
-      print(s);
+      debugPrint(s);
       dfuRunning = false;
     } catch (e) {
       dfuRunning = false;
-      print(e.toString());
+      debugPrint(e.toString());
     }
   }
 
@@ -91,11 +93,11 @@ class _MyAppState extends State<MyApp> {
           actions: <Widget>[
             isScanning
                 ? IconButton(
-                    icon: Icon(Icons.pause_circle_filled),
+                    icon: const Icon(Icons.pause_circle_filled),
                     onPressed: dfuRunning ? null : stopScan,
                   )
                 : IconButton(
-                    icon: Icon(Icons.play_arrow),
+                    icon: const Icon(Icons.play_arrow),
                     onPressed: dfuRunning ? null : startScan,
                   )
           ],
@@ -145,7 +147,7 @@ class ProgressListenerListener extends DfuProgressListenerAdapter {
       double? avgSpeed, int? currentPart, int? partsTotal) {
     super.onProgressChanged(
         deviceAddress, percent, speed, avgSpeed, currentPart, partsTotal);
-    print('deviceAddress: $deviceAddress, percent: $percent');
+    debugPrint('deviceAddress: $deviceAddress, percent: $percent');
   }
 }
 
@@ -156,7 +158,7 @@ class DeviceItem extends StatelessWidget {
 
   final bool? isRunningItem;
 
-  DeviceItem({required this.scanResult, this.onPress, this.isRunningItem});
+  const DeviceItem({required this.scanResult, this.onPress, this.isRunningItem, Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -169,7 +171,7 @@ class DeviceItem extends StatelessWidget {
         padding: const EdgeInsets.all(8.0),
         child: Row(
           children: <Widget>[
-            Icon(Icons.bluetooth),
+            const Icon(Icons.bluetooth),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -182,7 +184,7 @@ class DeviceItem extends StatelessWidget {
             ),
             TextButton(
                 onPressed: onPress,
-                child: isRunningItem! ? Text('Abort Dfu') : Text('Start Dfu'))
+                child: isRunningItem! ? const Text('Abort Dfu') : const Text('Start Dfu'))
           ],
         ),
       ),

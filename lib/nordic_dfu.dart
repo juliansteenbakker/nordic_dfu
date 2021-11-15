@@ -67,9 +67,9 @@ class IosSpecialParameter {
 }
 
 class NordicDfu {
-  static const String NAMESPACE = 'dev.steenbakker.nordic_dfu';
+  static const String namespace = 'dev.steenbakker.nordic_dfu';
 
-  static const MethodChannel _channel = MethodChannel('$NAMESPACE/method');
+  static const MethodChannel _channel = MethodChannel('$namespace/method');
 
   /// Start dfu handle
   /// [address] android: mac address iOS: device uuid
