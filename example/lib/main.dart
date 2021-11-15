@@ -158,7 +158,9 @@ class DeviceItem extends StatelessWidget {
 
   final bool? isRunningItem;
 
-  const DeviceItem({required this.scanResult, this.onPress, this.isRunningItem, Key? key}) : super(key: key);
+  const DeviceItem(
+      {required this.scanResult, this.onPress, this.isRunningItem, Key? key})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -184,7 +186,9 @@ class DeviceItem extends StatelessWidget {
             ),
             TextButton(
                 onPressed: onPress,
-                child: isRunningItem! ? const Text('Abort Dfu') : const Text('Start Dfu'))
+                child: isRunningItem!
+                    ? const Text('Abort Dfu')
+                    : const Text('Start Dfu'))
           ],
         ),
       ),
