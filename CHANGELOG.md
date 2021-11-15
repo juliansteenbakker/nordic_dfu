@@ -1,3 +1,9 @@
+## 3.2.0
+* Upgraded iOS Pod to 4.11.1
+* Upgraded Android Dependency to 1.12.0
+* Applied flutter_lints suggestion
+* Upgraded gradle
+
 ## 3.1.0
 * Upgraded iOS Pod to 4.10.3
 * Added api docs
