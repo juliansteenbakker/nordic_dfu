@@ -4,6 +4,7 @@ import 'package:collection/collection.dart' show IterableExtension;
 import 'package:flutter/material.dart';
 import 'package:nordic_dfu/nordic_dfu.dart';
 import 'package:flutter_blue/flutter_blue.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 void main() => runApp(const MyApp());
 
@@ -54,7 +55,15 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
-  void startScan() {
+  Future<void> startScan() async {
+    // You can request multiple permissions at once.
+    await [
+      Permission.bluetoothAdvertise,
+      Permission.bluetoothConnect,
+      Permission.bluetoothScan,
+      Permission.bluetooth,
+    ].request();
+
     scanSubscription?.cancel();
     setState(() {
       scanResults.clear();

@@ -10,10 +10,11 @@ dependencies:
     sdk: flutter
 
 #  flutter_blue: ^0.8.0
+  permission_handler: ^8.3.0
   flutter_blue:
     git:
       url: https://github.com/boskokg/flutter_blue/
-      ref: 0.11.0
+      ref: 0.13.0
   collection: ^1.15.0
 
 dev_dependencies:
