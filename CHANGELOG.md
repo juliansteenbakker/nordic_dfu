@@ -1,3 +1,7 @@
+## 3.3.0
+* Upgraded Android Dependency to 1.12.1-beta01
+* Upgraded Android Gradle
+
 ## 3.2.0
 * Upgraded iOS Pod to 4.11.1
 * Upgraded Android Dependency to 1.12.0
