@@ -1,3 +1,6 @@
+## 3.3.1
+* Upgraded Android Bluetooth Permissions
+
 ## 3.3.0
 * Upgraded Android Dependency to 1.12.1-beta01
 * Upgraded Android Gradle
