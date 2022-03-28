@@ -35,7 +35,7 @@ android {
 }
 
 dependencies {
-    implementation 'no.nordicsemi.android:dfu:1.12.1-beta01'
+    implementation 'no.nordicsemi.android:dfu:2.0.1'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }
 repositories {
