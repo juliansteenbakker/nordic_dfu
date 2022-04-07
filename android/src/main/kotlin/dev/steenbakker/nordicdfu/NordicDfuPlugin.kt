@@ -4,6 +4,7 @@ import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
 import android.os.Handler
+import android.os.Looper
 import io.flutter.FlutterInjector
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.FlutterPlugin.FlutterPluginBinding
@@ -72,7 +73,11 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler {
                 val tempFileName = (PathUtils.getExternalAppCachePath(mContext!!)
                         + UUID.randomUUID().toString())
                 // copy asset file to temp path
-                ResourceUtils.copyFileFromAssets(filePath, tempFileName, mContext!!)
+                if (!ResourceUtils.copyFileFromAssets(filePath, tempFileName, mContext!!)) {
+                    result.error("File Error", "File not found!", "$filePath")
+                    return
+                }
+
                 // now, the path is an absolute path, and can pass it to nordic dfu libarary
                 filePath = tempFileName
             }
@@ -226,7 +231,7 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler {
 
     private fun cancelNotification() {
         // let's wait a bit until we cancel the notification. When canceled immediately it will be recreated by service again.
-        Handler().postDelayed({
+        Handler(Looper.getMainLooper()).postDelayed({
             val manager = mContext!!.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             manager.cancel(NOTIFICATION_ID)
         }, 200)
