@@ -1,5 +1,12 @@
-## 3.3.1
-* Upgraded Android Bluetooth Permissions
+## 4.0.0
+BREAKING CHANGES:
+NordiDfu now uses a Singelton! The notation changes from NordicDfu.startDfu() to NordicDfu().startDfu()
+
+New Features:
+* Upgraded Nordic-DFU-Library to 2.0.2
+* Upgraded Android Bluetooth Permissions.
+* Upgraded other minor dependencies.
+* Upgraded flutter_lints to lint for stricter analyzer.
 
 ## 3.3.0
 * Upgraded Android Dependency to 1.12.1-beta01

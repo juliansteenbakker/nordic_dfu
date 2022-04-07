@@ -67,8 +67,15 @@ class IosSpecialParameter {
 }
 
 class NordicDfu {
-  static const String namespace = 'dev.steenbakker.nordic_dfu';
+  static final NordicDfu _singleton = NordicDfu._internal();
 
+  factory NordicDfu() {
+    return _singleton;
+  }
+
+  NordicDfu._internal();
+
+  static const String namespace = 'dev.steenbakker.nordic_dfu';
   static const MethodChannel _channel = MethodChannel('$namespace/method');
 
   /// Start dfu handle
@@ -81,7 +88,7 @@ class NordicDfu {
   /// [enableUnsafeExperimentalButtonlessServiceInSecureDfu] see in nordic library, default is false
   /// [androidSpecialParameter] this parameters is only used by android lib
   /// [iosSpecialParameter] this parameters is only used by ios lib
-  static Future<String?> startDfu(
+  Future<String?> startDfu(
     String address,
     String filePath, {
     String? name,
@@ -98,51 +105,55 @@ class NordicDfu {
     _channel.setMethodCallHandler((MethodCall call) {
       switch (call.method) {
         case 'onDeviceConnected':
-          progressListener?.onDeviceConnected(call.arguments);
+          progressListener?.onDeviceConnected(call.arguments as String?);
           break;
         case 'onDeviceConnecting':
-          progressListener?.onDeviceConnecting(call.arguments);
+          progressListener?.onDeviceConnecting(call.arguments as String?);
           break;
         case 'onDeviceDisconnected':
-          progressListener?.onDeviceDisconnected(call.arguments);
+          progressListener?.onDeviceDisconnected(call.arguments as String?);
           break;
         case 'onDeviceDisconnecting':
-          progressListener?.onDeviceDisconnecting(call.arguments);
+          progressListener?.onDeviceDisconnecting(call.arguments as String?);
           break;
         case 'onDfuAborted':
-          progressListener?.onDfuAborted(call.arguments);
+          progressListener?.onDfuAborted(call.arguments as String?);
           break;
         case 'onDfuCompleted':
-          progressListener?.onDfuCompleted(call.arguments);
+          progressListener?.onDfuCompleted(call.arguments as String?);
           break;
         case 'onDfuProcessStarted':
-          progressListener?.onDfuProcessStarted(call.arguments);
+          progressListener?.onDfuProcessStarted(call.arguments as String?);
           break;
         case 'onDfuProcessStarting':
-          progressListener?.onDfuProcessStarting(call.arguments);
+          progressListener?.onDfuProcessStarting(call.arguments as String?);
           break;
         case 'onEnablingDfuMode':
-          progressListener?.onEnablingDfuMode(call.arguments);
+          progressListener?.onEnablingDfuMode(call.arguments as String?);
           break;
         case 'onFirmwareValidating':
-          progressListener?.onFirmwareValidating(call.arguments);
+          progressListener?.onFirmwareValidating(call.arguments as String?);
           break;
         case 'onError':
+          final Map<String, dynamic> result =
+              call.arguments as Map<String, dynamic>;
           progressListener?.onError(
-            call.arguments['deviceAddress'],
-            call.arguments['error'],
-            call.arguments['errorType'],
-            call.arguments['message'],
+            result['deviceAddress'] as String?,
+            result['error'] as int?,
+            result['errorType'] as int?,
+            result['message'] as String?,
           );
           break;
         case 'onProgressChanged':
+          final Map<String, dynamic> result =
+              call.arguments as Map<String, dynamic>;
           progressListener?.onProgressChanged(
-            call.arguments['deviceAddress'],
-            call.arguments['percent'],
-            call.arguments['speed'],
-            call.arguments['avgSpeed'],
-            call.arguments['currentPart'],
-            call.arguments['partsTotal'],
+            result['deviceAddress'] as String?,
+            result['percent'] as int?,
+            result['speed'] as double?,
+            result['avgSpeed'] as double?,
+            result['currentPart'] as int?,
+            result['partsTotal'] as int?,
           );
           break;
         default:
@@ -151,7 +162,7 @@ class NordicDfu {
       throw UnimplementedError();
     });
 
-    return await _channel.invokeMethod('startDfu', <String, dynamic>{
+    return _channel.invokeMethod('startDfu', <String, dynamic>{
       'address': address,
       'filePath': filePath,
       'name': name,
@@ -173,8 +184,8 @@ class NordicDfu {
     });
   }
 
-  static Future<String?> abortDfu() async {
-    return await _channel.invokeMethod('abortDfu');
+  Future<String?> abortDfu() async {
+    return _channel.invokeMethod('abortDfu');
   }
 }
 
@@ -267,16 +278,20 @@ class DefaultDfuProgressListenerAdapter extends DfuProgressListenerAdapter {
   void Function(String? deviceAddress)? onFirmwareValidatingHandle;
 
   void Function(
-          String? deviceAddress, int? error, int? errorType, String? message)?
-      onErrorHandle;
+    String? deviceAddress,
+    int? error,
+    int? errorType,
+    String? message,
+  )? onErrorHandle;
 
   void Function(
-      String? deviceAddress,
-      int? percent,
-      double? speed,
-      double? avgSpeed,
-      int? currentPart,
-      int? partsTotal)? onProgressChangedHandle;
+    String? deviceAddress,
+    int? percent,
+    double? speed,
+    double? avgSpeed,
+    int? currentPart,
+    int? partsTotal,
+  )? onProgressChangedHandle;
 
   DefaultDfuProgressListenerAdapter({
     this.onDeviceConnectedHandle,
@@ -296,81 +311,67 @@ class DefaultDfuProgressListenerAdapter extends DfuProgressListenerAdapter {
   @override
   void onDeviceConnected(String? deviceAddress) {
     super.onDeviceConnected(deviceAddress);
-    if (onDeviceConnectedHandle != null) {
-      onDeviceConnectedHandle!(deviceAddress);
-    }
+
+    onDeviceConnectedHandle?.call(deviceAddress);
   }
 
   @override
   void onDeviceConnecting(String? deviceAddress) {
     super.onDeviceConnecting(deviceAddress);
-    if (onDeviceConnectingHandle != null) {
-      onDeviceConnectingHandle!(deviceAddress);
-    }
+    onDeviceConnectingHandle?.call(deviceAddress);
   }
 
   @override
   void onDeviceDisconnected(String? deviceAddress) {
     super.onDeviceDisconnected(deviceAddress);
-    if (onDeviceDisconnectedHandle != null) {
-      onDeviceDisconnectedHandle!(deviceAddress);
-    }
+
+    onDeviceDisconnectedHandle?.call(deviceAddress);
   }
 
   @override
   void onDeviceDisconnecting(String? deviceAddress) {
     super.onDeviceDisconnecting(deviceAddress);
-    if (onDeviceDisconnectingHandle != null) {
-      onDeviceDisconnectingHandle!(deviceAddress);
-    }
+    onDeviceDisconnectingHandle?.call(deviceAddress);
   }
 
   @override
   void onDfuAborted(String? deviceAddress) {
     super.onDfuAborted(deviceAddress);
-    if (onDfuAbortedHandle != null) {
-      onDfuAbortedHandle!(deviceAddress);
-    }
+    onDfuAbortedHandle?.call(deviceAddress);
   }
 
   @override
   void onDfuCompleted(String? deviceAddress) {
     super.onDfuCompleted(deviceAddress);
-    if (onDfuCompletedHandle != null) {
-      onDfuCompletedHandle!(deviceAddress);
-    }
+
+    onDfuCompletedHandle?.call(deviceAddress);
   }
 
   @override
   void onDfuProcessStarted(String? deviceAddress) {
     super.onDfuProcessStarted(deviceAddress);
-    if (onDfuProcessStartedHandle != null) {
-      onDfuProcessStartedHandle!(deviceAddress);
-    }
+    onDfuProcessStartedHandle?.call(deviceAddress);
   }
 
   @override
   void onDfuProcessStarting(String? deviceAddress) {
     super.onDfuProcessStarting(deviceAddress);
-    if (onDfuProcessStartingHandle != null) {
-      onDfuProcessStartingHandle!(deviceAddress);
-    }
+
+    onDfuProcessStartingHandle?.call(deviceAddress);
   }
 
   @override
   void onEnablingDfuMode(String? deviceAddress) {
     super.onEnablingDfuMode(deviceAddress);
-    if (onEnablingDfuModeHandle != null) {
-      onEnablingDfuModeHandle!(deviceAddress);
-    }
+
+    onEnablingDfuModeHandle?.call(deviceAddress);
   }
 
   @override
   void onFirmwareValidating(String? deviceAddress) {
     super.onFirmwareValidating(deviceAddress);
-    if (onFirmwareValidatingHandle != null) {
-      onFirmwareValidatingHandle!(deviceAddress);
-    }
+
+    onFirmwareValidatingHandle?.call(deviceAddress);
   }
 
   @override
@@ -386,14 +387,13 @@ class DefaultDfuProgressListenerAdapter extends DfuProgressListenerAdapter {
       errorType,
       message,
     );
-    if (onErrorHandle != null) {
-      onErrorHandle!(
-        deviceAddress,
-        error,
-        errorType,
-        message,
-      );
-    }
+
+    onErrorHandle?.call(
+      deviceAddress,
+      error,
+      errorType,
+      message,
+    );
   }
 
   @override
@@ -413,15 +413,14 @@ class DefaultDfuProgressListenerAdapter extends DfuProgressListenerAdapter {
       currentPart,
       partsTotal,
     );
-    if (onProgressChangedHandle != null) {
-      onProgressChangedHandle!(
-        deviceAddress,
-        percent,
-        speed,
-        avgSpeed,
-        currentPart,
-        partsTotal,
-      );
-    }
+
+    onProgressChangedHandle?.call(
+      deviceAddress,
+      percent,
+      speed,
+      avgSpeed,
+      currentPart,
+      partsTotal,
+    );
   }
 }
