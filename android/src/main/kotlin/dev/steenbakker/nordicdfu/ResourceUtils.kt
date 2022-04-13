@@ -25,12 +25,14 @@ object ResourceUtils {
             } else {
                 res = writeFileFromIS(
                         destFilePath,
-                        context.applicationContext.assets.open(assetsFilePath),
-                        false
+                        context.applicationContext.assets.open(assetsFilePath)
                 )
             }
-        } catch (e: IOException) {
+        } catch (e: IOException ) {
             e.printStackTrace()
+            res = false
+        } catch (f: FileNotFoundException) {
+            f.printStackTrace()
             res = false
         }
         return res
@@ -40,18 +42,16 @@ object ResourceUtils {
     // other utils methods
     ///////////////////////////////////////////////////////////////////////////
     private fun writeFileFromIS(filePath: String,
-                                `is`: InputStream,
-                                append: Boolean): Boolean {
-        return writeFileFromIS(getFileByPath(filePath), `is`, append)
+                                `is`: InputStream): Boolean {
+        return writeFileFromIS(getFileByPath(filePath), `is`)
     }
 
     private fun writeFileFromIS(file: File?,
-                                `is`: InputStream?,
-                                append: Boolean): Boolean {
+                                `is`: InputStream?): Boolean {
         if (!createOrExistsFile(file) || `is` == null) return false
         var os: OutputStream? = null
         return try {
-            os = BufferedOutputStream(FileOutputStream(file, append))
+            os = BufferedOutputStream(FileOutputStream(file, false))
             val data = ByteArray(BUFFER_SIZE)
             var len: Int
             while (`is`.read(data, 0, BUFFER_SIZE).also { len = it } != -1) {

@@ -1,6 +1,15 @@
-# nordic-dfu [![pub package](https://img.shields.io/pub/v/nordic_dfu.svg)](https://pub.dev/packages/nordic_dfu)
+# nordic_dfu
+[![style: lint](https://img.shields.io/badge/style-lint-4BC0F5.svg)](https://pub.dev/packages/lint)
+[![pub package](https://img.shields.io/pub/v/nordic_dfu.svg)](https://pub.dev/packages/nordic_dfu)
+[![mobile_scanner](https://github.com/juliansteenbakker/nordic_dfu/actions/workflows/flutter_format.yml/badge.svg)](https://github.com/juliansteenbakker/nordic_dfu/actions/workflows/flutter_format.yml)
+[![GitHub Sponsors](https://img.shields.io/github/sponsors/juliansteenbakker?label=want%20support%3F%20sponsor%20me%20and%20I%27ll%20contact%20you%21)](https://github.com/sponsors/juliansteenbakker)
 
-Fork from [flutter_nordic_dfu](https://pub.dev/packages/flutter_nordic_dfu).
+## 4.0.0 Breaking changes!
+From version 4.0.0, the NordicDfu class uses a Singleton.
+If you are comming from an older version, you have to change the notation from NordicDfu.startDfu() to NordicDfu().startDfu().
+
+
+Fork from [flutter_nordic_dfu](https://pub.dev/packages/flutter_nordic_dfu) and updated with latest dependencies.
 
 This library allows you to do a Device Firmware Update (DFU) of your nrf51 or
 nrf52 chip from Nordic Semiconductor. It works for Android and iOS.
@@ -28,7 +37,7 @@ You can pass an absolute file path or asset file to `NordicDfu`
 
 ```dart
 /// You can define your ProgressListenerListener
-await NordicDfu.startDfu(
+await NordicDfu().startDfu(
             'EB:75:AD:E3:CA:CF', '/file/to/zip/path/file.zip',
             progressListener: ProgressListenerListener(),
          );
@@ -45,7 +54,7 @@ class ProgressListenerListener extends DfuProgressListenerAdapter {
 }
 
 /// Or you can use DefaultDfuProgressListenerAdapter
-await NordicDfu.startDfu(
+await NordicDfu().startDfu(
       'EB:75:AD:E3:CA:CF',
       'assets/file.zip',
       fileInAsset: true,
@@ -67,7 +76,7 @@ await NordicDfu.startDfu(
 
 ```dart
 /// just set [fileInAsset] true
-await NordicDfu.startDfu(
+await NordicDfu().startDfu(
             'EB:75:AD:E3:CA:CF', 'assets/file.zip',
             progressListener: ProgressListenerListener(),
             fileInAsset: true,

@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:flutter/material.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:nordic_dfu/nordic_dfu.dart';
-import 'package:flutter_blue/flutter_blue.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 void main() => runApp(const MyApp());
@@ -16,36 +16,32 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  final FlutterBlue flutterBlue = FlutterBlue.instance;
+  final FlutterBluePlus flutterBlue = FlutterBluePlus.instance;
   StreamSubscription<ScanResult>? scanSubscription;
   List<ScanResult> scanResults = <ScanResult>[];
   bool dfuRunning = false;
   int? dfuRunningInx;
 
-  @override
-  void initState() {
-    super.initState();
-  }
-
   Future<void> doDfu(String deviceId) async {
     stopScan();
     dfuRunning = true;
     try {
-      var s = await NordicDfu.startDfu(
+      final s = await NordicDfu().startDfu(
         deviceId,
         'assets/file.zip',
         fileInAsset: true,
-        progressListener:
-            DefaultDfuProgressListenerAdapter(onProgressChangedHandle: (
-          deviceAddress,
-          percent,
-          speed,
-          avgSpeed,
-          currentPart,
-          partsTotal,
-        ) {
-          debugPrint('deviceAddress: $deviceAddress, percent: $percent');
-        }),
+        progressListener: DefaultDfuProgressListenerAdapter(
+          onProgressChangedHandle: (
+            deviceAddress,
+            percent,
+            speed,
+            avgSpeed,
+            currentPart,
+            partsTotal,
+          ) {
+            debugPrint('deviceAddress: $deviceAddress, percent: $percent');
+          },
+        ),
       );
       debugPrint(s);
       dfuRunning = false;
@@ -70,7 +66,8 @@ class _MyAppState extends State<MyApp> {
       scanSubscription = flutterBlue.scan().listen(
         (scanResult) {
           if (scanResults.firstWhereOrNull(
-                  (ele) => ele.device.id == scanResult.device.id) !=
+                (ele) => ele.device.id == scanResult.device.id,
+              ) !=
               null) {
             return;
           }
@@ -100,15 +97,16 @@ class _MyAppState extends State<MyApp> {
         appBar: AppBar(
           title: const Text('Plugin example app'),
           actions: <Widget>[
-            isScanning
-                ? IconButton(
-                    icon: const Icon(Icons.pause_circle_filled),
-                    onPressed: dfuRunning ? null : stopScan,
-                  )
-                : IconButton(
-                    icon: const Icon(Icons.play_arrow),
-                    onPressed: dfuRunning ? null : startScan,
-                  )
+            if (isScanning)
+              IconButton(
+                icon: const Icon(Icons.pause_circle_filled),
+                onPressed: dfuRunning ? null : stopScan,
+              )
+            else
+              IconButton(
+                icon: const Icon(Icons.play_arrow),
+                onPressed: dfuRunning ? null : startScan,
+              )
           ],
         ),
         body: !hasDevice
@@ -126,13 +124,13 @@ class _MyAppState extends State<MyApp> {
   }
 
   Widget _deviceItemBuilder(BuildContext context, int index) {
-    var result = scanResults[index];
+    final result = scanResults[index];
     return DeviceItem(
-      isRunningItem: (dfuRunningInx == null ? false : dfuRunningInx == index),
+      isRunningItem: dfuRunningInx == index,
       scanResult: result,
       onPress: dfuRunning
           ? () async {
-              await NordicDfu.abortDfu();
+              await NordicDfu().abortDfu();
               setState(() {
                 dfuRunningInx = null;
               });
@@ -152,10 +150,22 @@ class _MyAppState extends State<MyApp> {
 
 class ProgressListenerListener extends DfuProgressListenerAdapter {
   @override
-  void onProgressChanged(String? deviceAddress, int? percent, double? speed,
-      double? avgSpeed, int? currentPart, int? partsTotal) {
+  void onProgressChanged(
+    String? deviceAddress,
+    int? percent,
+    double? speed,
+    double? avgSpeed,
+    int? currentPart,
+    int? partsTotal,
+  ) {
     super.onProgressChanged(
-        deviceAddress, percent, speed, avgSpeed, currentPart, partsTotal);
+      deviceAddress,
+      percent,
+      speed,
+      avgSpeed,
+      currentPart,
+      partsTotal,
+    );
     debugPrint('deviceAddress: $deviceAddress, percent: $percent');
   }
 }
@@ -167,9 +177,12 @@ class DeviceItem extends StatelessWidget {
 
   final bool? isRunningItem;
 
-  const DeviceItem(
-      {required this.scanResult, this.onPress, this.isRunningItem, Key? key})
-      : super(key: key);
+  const DeviceItem({
+    required this.scanResult,
+    this.onPress,
+    this.isRunningItem,
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -194,10 +207,11 @@ class DeviceItem extends StatelessWidget {
               ),
             ),
             TextButton(
-                onPressed: onPress,
-                child: isRunningItem!
-                    ? const Text('Abort Dfu')
-                    : const Text('Start Dfu'))
+              onPressed: onPress,
+              child: isRunningItem!
+                  ? const Text('Abort Dfu')
+                  : const Text('Start Dfu'),
+            )
           ],
         ),
       ),
