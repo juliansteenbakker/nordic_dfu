@@ -66,6 +66,8 @@ class IosSpecialParameter {
   });
 }
 
+
+/// This singleton handles the DFU process.
 class NordicDfu {
   static final NordicDfu _singleton = NordicDfu._internal();
 

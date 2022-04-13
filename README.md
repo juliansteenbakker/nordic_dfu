@@ -4,6 +4,11 @@
 [![mobile_scanner](https://github.com/juliansteenbakker/nordic_dfu/actions/workflows/flutter_format.yml/badge.svg)](https://github.com/juliansteenbakker/nordic_dfu/actions/workflows/flutter_format.yml)
 [![GitHub Sponsors](https://img.shields.io/github/sponsors/juliansteenbakker?label=want%20support%3F%20sponsor%20me%20and%20I%27ll%20contact%20you%21)](https://github.com/sponsors/juliansteenbakker)
 
+## 4.0.0 Breaking changes!
+From version 4.0.0, the NordicDfu class uses a Singleton.
+If you are comming from an older version, you have to change the notation from NordicDfu.startDfu() to NordicDfu().startDfu().
+
+
 Fork from [flutter_nordic_dfu](https://pub.dev/packages/flutter_nordic_dfu) and updated with latest dependencies.
 
 This library allows you to do a Device Firmware Update (DFU) of your nrf51 or
