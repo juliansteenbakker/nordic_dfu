@@ -2,7 +2,12 @@
 [![style: lint](https://img.shields.io/badge/style-lint-4BC0F5.svg)](https://pub.dev/packages/lint)
 [![pub package](https://img.shields.io/pub/v/nordic_dfu.svg)](https://pub.dev/packages/nordic_dfu)
 [![mobile_scanner](https://github.com/juliansteenbakker/nordic_dfu/actions/workflows/flutter_format.yml/badge.svg)](https://github.com/juliansteenbakker/nordic_dfu/actions/workflows/flutter_format.yml)
-[![GitHub Sponsors](https://img.shields.io/github/sponsors/juliansteenbakker?label=want%20support%3F%20sponsor%20me%20and%20I%27ll%20contact%20you%21)](https://github.com/sponsors/juliansteenbakker)
+[![GitHub Sponsors](https://img.shields.io/github/sponsors/juliansteenbakker?label=sponsor%20me%20)](https://github.com/sponsors/juliansteenbakker)
+
+## 5.0.0 Breaking changes!
+From version 5.0.0, the callbacks are defined as function parameters in NordicDfu().startDfu().
+Please see the example app for more information.
+
 
 ## 4.0.0 Breaking changes!
 From version 4.0.0, the NordicDfu class uses a Singleton.
@@ -36,30 +41,15 @@ You can pass an absolute file path or asset file to `NordicDfu`
 ##### Use absolute file path
 
 ```dart
-/// You can define your ProgressListenerListener
 await NordicDfu().startDfu(
-            'EB:75:AD:E3:CA:CF', '/file/to/zip/path/file.zip',
-            progressListener: ProgressListenerListener(),
+            'EB:75:AD:E3:CA:CF', '/file/to/zip/path/file.zip'
          );
-
-
-class ProgressListenerListener extends DfuProgressListenerAdapter {
-  @override
-  void onProgressChanged(String deviceAddress, int percent, double speed,
-      double avgSpeed, int currentPart, int partsTotal) {
-    super.onProgressChanged(
-        deviceAddress, percent, speed, avgSpeed, currentPart, partsTotal);
-    print('deviceAddress: $deviceAddress, percent: $percent');
-  }
-}
-
-/// Or you can use DefaultDfuProgressListenerAdapter
+// With callback
 await NordicDfu().startDfu(
       'EB:75:AD:E3:CA:CF',
       'assets/file.zip',
       fileInAsset: true,
-      progressListener:
-          DefaultDfuProgressListenerAdapter(onProgressChangedHandle: (
+      onProgressChanged: (
         deviceAddress,
         percent,
         speed,
@@ -68,7 +58,7 @@ await NordicDfu().startDfu(
         partsTotal,
       ) {
         print('deviceAddress: $deviceAddress, percent: $percent');
-      }),
+      },
     );
 ```
 
@@ -78,19 +68,8 @@ await NordicDfu().startDfu(
 /// just set [fileInAsset] true
 await NordicDfu().startDfu(
             'EB:75:AD:E3:CA:CF', 'assets/file.zip',
-            progressListener: ProgressListenerListener(),
             fileInAsset: true,
          );
-
-class ProgressListenerListener extends DfuProgressListenerAdapter {
-  @override
-  void onProgressChanged(String deviceAddress, int percent, double speed,
-      double avgSpeed, int currentPart, int partsTotal) {
-    super.onProgressChanged(
-        deviceAddress, percent, speed, avgSpeed, currentPart, partsTotal);
-    print('deviceAddress: $deviceAddress, percent: $percent');
-  }
-}
 ```
 
 ## Resources
