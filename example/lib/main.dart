@@ -30,18 +30,22 @@ class _MyAppState extends State<MyApp> {
         deviceId,
         'assets/file.zip',
         fileInAsset: true,
-        progressListener: DefaultDfuProgressListenerAdapter(
-          onProgressChangedHandle: (
-            deviceAddress,
-            percent,
-            speed,
-            avgSpeed,
-            currentPart,
-            partsTotal,
-          ) {
-            debugPrint('deviceAddress: $deviceAddress, percent: $percent');
-          },
-        ),
+        onDeviceDisconnecting: (string) {
+          debugPrint('deviceAddress: $string');
+        },
+        // onErrorHandle: (string) {
+        //   debugPrint('deviceAddress: $string');
+        // },
+        onProgressChanged: (
+          deviceAddress,
+          percent,
+          speed,
+          avgSpeed,
+          currentPart,
+          partsTotal,
+        ) {
+          debugPrint('deviceAddress: $deviceAddress, percent: $percent');
+        },
       );
       debugPrint(s);
       dfuRunning = false;
@@ -148,27 +152,27 @@ class _MyAppState extends State<MyApp> {
   }
 }
 
-class ProgressListenerListener extends DfuProgressListenerAdapter {
-  @override
-  void onProgressChanged(
-    String? deviceAddress,
-    int? percent,
-    double? speed,
-    double? avgSpeed,
-    int? currentPart,
-    int? partsTotal,
-  ) {
-    super.onProgressChanged(
-      deviceAddress,
-      percent,
-      speed,
-      avgSpeed,
-      currentPart,
-      partsTotal,
-    );
-    debugPrint('deviceAddress: $deviceAddress, percent: $percent');
-  }
-}
+// class ProgressListenerListener extends DfuProgressListenerAdapter {
+//   @override
+//   void onProgressChanged(
+//     String? deviceAddress,
+//     int? percent,
+//     double? speed,
+//     double? avgSpeed,
+//     int? currentPart,
+//     int? partsTotal,
+//   ) {
+//     super.onProgressChanged(
+//       deviceAddress,
+//       percent,
+//       speed,
+//       avgSpeed,
+//       currentPart,
+//       partsTotal,
+//     );
+//     debugPrint('deviceAddress: $deviceAddress, percent: $percent');
+//   }
+// }
 
 class DeviceItem extends StatelessWidget {
   final ScanResult scanResult;

@@ -3,67 +3,91 @@ import UIKit
 import iOSDFULibrary
 import CoreBluetooth
 
-public class SwiftNordicDfuPlugin: NSObject, FlutterPlugin, DFUServiceDelegate, DFUProgressDelegate, LoggerDelegate {
+public class SwiftNordicDfuPlugin: NSObject, FlutterPlugin, FlutterStreamHandler, DFUServiceDelegate, DFUProgressDelegate, LoggerDelegate {
     
     let registrar: FlutterPluginRegistrar
-    let channel: FlutterMethodChannel
+    var sink: FlutterEventSink!
     var pendingResult: FlutterResult?
     var deviceAddress: String?
-    private var dfuController    : DFUServiceController!
-    
-    init(_ registrar: FlutterPluginRegistrar, _ channel: FlutterMethodChannel) {
-        self.registrar = registrar
-        self.channel = channel
-    }
+    private var dfuController : DFUServiceController!
     
     public static func register(with registrar: FlutterPluginRegistrar) {
-        let channel = FlutterMethodChannel(name: "dev.steenbakker.nordic_dfu/method", binaryMessenger: registrar.messenger())
-        let instance = SwiftNordicDfuPlugin(registrar, channel)
-        registrar.addMethodCallDelegate(instance, channel: channel)
+        let instance = SwiftNordicDfuPlugin(registrar)
+        
+        let method = FlutterMethodChannel(name: "dev.steenbakker.nordic_dfu/method", binaryMessenger: registrar.messenger())
+        
+        let event = FlutterEventChannel(name:
+                                            "dev.steenbakker.nordic_dfu/event", binaryMessenger: registrar.messenger())
+
+        registrar.addMethodCallDelegate(instance, channel: method)
+        event.setStreamHandler(instance)
     }
     
+    init(_ registrar: FlutterPluginRegistrar) {
+        self.registrar = registrar
+        super.init()
+    }
+
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        if (call.method == "startDfu") {
-            guard let arguments = call.arguments as? Dictionary<String, AnyObject> else {
-                result(FlutterError(code: "ABNORMAL_PARAMETER", message: "no parameters", details: nil))
+        switch call.method {
+        case "startDfu": initializeDfu(call, result)
+        case "abortDfu" : abortDfu()
+        default: result(FlutterMethodNotImplemented)
+        }
+    }
+    
+    public func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
+        sink = events
+        return nil
+    }
+    
+    public func onCancel(withArguments arguments: Any?) -> FlutterError? {
+        sink = nil
+        return nil
+    }
+    
+    private func abortDfu() {
+        _ = dfuController?.abort()
+        dfuController = nil
+    }
+ 
+    private func initializeDfu(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
+        guard let arguments = call.arguments as? Dictionary<String, AnyObject> else {
+            result(FlutterError(code: "ABNORMAL_PARAMETER", message: "no parameters", details: nil))
+            return
+        }
+        let name = arguments["name"] as? String
+        guard let address = arguments["address"] as? String,
+            var filePath = arguments["filePath"] as? String else {
+                result(FlutterError(code: "ABNORMAL_PARAMETER", message: "address and filePath are required", details: nil))
+                return
+        }
+        
+        let forceDfu = arguments["forceDfu"] as? Bool
+        
+        let enableUnsafeExperimentalButtonlessServiceInSecureDfu = arguments["enableUnsafeExperimentalButtonlessServiceInSecureDfu"] as? Bool
+        
+        let fileInAsset = (arguments["fileInAsset"] as? Bool) ?? false
+        
+        if (fileInAsset) {
+            let key = registrar.lookupKey(forAsset: filePath)
+            guard let pathInAsset = Bundle.main.path(forResource: key, ofType: nil) else {
+                result(FlutterError(code: "ABNORMAL_PARAMETER", message: "file in asset not found \(filePath)", details: nil))
                 return
             }
-            let name = arguments["name"] as? String
-            guard let address = arguments["address"] as? String,
-                var filePath = arguments["filePath"] as? String else {
-                    result(FlutterError(code: "ABNORMAL_PARAMETER", message: "address and filePath are required", details: nil))
-                    return
-            }
             
-            let forceDfu = arguments["forceDfu"] as? Bool
-            
-            let enableUnsafeExperimentalButtonlessServiceInSecureDfu = arguments["enableUnsafeExperimentalButtonlessServiceInSecureDfu"] as? Bool
-            
-            let fileInAsset = (arguments["fileInAsset"] as? Bool) ?? false
-            
-            if (fileInAsset) {
-                let key = registrar.lookupKey(forAsset: filePath)
-                guard let pathInAsset = Bundle.main.path(forResource: key, ofType: nil) else {
-                    result(FlutterError(code: "ABNORMAL_PARAMETER", message: "file in asset not found \(filePath)", details: nil))
-                    return
-                }
-                
-                filePath = pathInAsset
-            }
-            
-            let alternativeAdvertisingNameEnabled = arguments["alternativeAdvertisingNameEnabled"] as? Bool
-            
-            startDfu(address,
-                     name: name,
-                     filePath: filePath,
-                     forceDfu: forceDfu,
-                     enableUnsafeExperimentalButtonlessServiceInSecureDfu: enableUnsafeExperimentalButtonlessServiceInSecureDfu,
-                     alternativeAdvertisingNameEnabled: alternativeAdvertisingNameEnabled,
-                     result: result)
-        } else if (call.method == "abortDfu") {
-            _ = dfuController?.abort()
-            dfuController = nil
+            filePath = pathInAsset
         }
+        
+        let alternativeAdvertisingNameEnabled = arguments["alternativeAdvertisingNameEnabled"] as? Bool
+        
+        startDfu(address,
+                 name: name,
+                 filePath: filePath,
+                 forceDfu: forceDfu,
+                 enableUnsafeExperimentalButtonlessServiceInSecureDfu: enableUnsafeExperimentalButtonlessServiceInSecureDfu,
+                 alternativeAdvertisingNameEnabled: alternativeAdvertisingNameEnabled,
+                 result: result)
     }
     
     private func startDfu(
@@ -106,63 +130,44 @@ public class SwiftNordicDfuPlugin: NSObject, FlutterPlugin, DFUServiceDelegate, 
         deviceAddress = address
         
         dfuController = dfuInitiator.start(targetWithIdentifier: uuid)
-        print("dfuInitiator have start")
     }
     
-    //MARK: DFUServiceDelegate
+//    MARK: DFUServiceDelegate
     public func dfuStateDidChange(to state: DFUState) {
         switch state {
         case .completed:
+            sink?(["onDfuCompleted":deviceAddress])
             pendingResult?(deviceAddress)
             pendingResult = nil
-            print("\(deviceAddress!) onDfuCompleted")
             dfuController = nil
-            channel.invokeMethod("onDfuCompleted", arguments: deviceAddress)
         case .disconnecting:
-            print("\(deviceAddress!) onDeviceDisconnecting")
-            channel.invokeMethod("onDeviceDisconnecting", arguments: deviceAddress)
+            sink?(["onDeviceDisconnecting":deviceAddress])
         case .aborted:
-            pendingResult?(FlutterError(code: "DFU_ABORRED", message: "Device address: \(deviceAddress!)", details: nil))
+            sink?(["onDfuAborted": deviceAddress])
+            pendingResult?(FlutterError(code: "DFU_ABORTED", message: "DFU ABORTED by user", details: "device address: \(deviceAddress!)"))
             pendingResult = nil
-            print("\(deviceAddress!) onDfuAborted")
-            channel.invokeMethod("onDfuAborted", arguments: deviceAddress)
         case .connecting:
-            print("\(deviceAddress!) onDeviceConnecting")
-            channel.invokeMethod("onDeviceConnecting", arguments: deviceAddress)
+            sink?(["onDeviceConnecting":deviceAddress])
         case .starting:
-            print("\(deviceAddress!) onDfuProcessStarting")
-            channel.invokeMethod("onDfuProcessStarting", arguments: deviceAddress)
+            sink?(["onDfuProcessStarting":deviceAddress])
         case .enablingDfuMode:
-            print("\(deviceAddress!) onEnablingDfuMode")
-            channel.invokeMethod("onEnablingDfuMode", arguments: deviceAddress)
+            sink?(["onEnablingDfuMode":deviceAddress])
         case .validating:
-            print("\(deviceAddress!) onFirmwareValidating")
-            channel.invokeMethod("onFirmwareValidating", arguments: deviceAddress)
+            sink?(["onFirmwareValidating":deviceAddress])
         case .uploading:
-            print("\(deviceAddress!) onFirmwareUploading")
-            channel.invokeMethod("onFirmwareUploading", arguments: deviceAddress)
+            sink?(["onFirmwareUploading":deviceAddress])
         }
     }
     
     public func dfuError(_ error: DFUError, didOccurWithMessage message: String) {
-        print("\(deviceAddress!) onError, message : \(message)")
-        channel.invokeMethod("onError", arguments: deviceAddress)
-        
-        pendingResult?(FlutterError(code: "DFU_FAILED", message: "Device address: \(deviceAddress!)", details: nil))
+        sink?(["onError":["deviceAddress": deviceAddress!, "error": error.rawValue, "errorType":error.rawValue, "message": message]])
+        pendingResult?(FlutterError(code: "\(error.rawValue)", message: "DFU FAILED: \(message)", details: "Address: \(deviceAddress!), Error type \(error.rawValue)"))
         pendingResult = nil
     }
     
     //MARK: DFUProgressDelegate
     public func dfuProgressDidChange(for part: Int, outOf totalParts: Int, to progress: Int, currentSpeedBytesPerSecond: Double, avgSpeedBytesPerSecond: Double) {
-        print("onProgressChanged: \(progress)")
-        channel.invokeMethod("onProgressChanged", arguments: [
-            "percent": progress,
-            "speed": currentSpeedBytesPerSecond,
-            "avgSpeed": avgSpeedBytesPerSecond,
-            "currentPart": part,
-            "partsTotal": totalParts,
-            "deviceAddress": deviceAddress!
-            ])
+        sink?(["onProgressChanged":["deviceAddress": deviceAddress!, "percent": progress, "speed":currentSpeedBytesPerSecond, "avgSpeed": avgSpeedBytesPerSecond, "currentPart": part, "partsTotal": totalParts]])
     }
     
     //MARK: - LoggerDelegate

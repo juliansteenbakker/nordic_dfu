@@ -22,6 +22,6 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-  # To add assets to your application, add an assets section, like this:
+#  # To add assets to your application, add an assets section, like this:
 #  assets:
 #    - assets/file.zip
