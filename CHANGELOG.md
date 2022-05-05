@@ -1,3 +1,10 @@
+## 5.0.0
+BREAKING CHANGES:
+Callback is now handled through functions in the StartDfu() method. Please see the example app for an example.
+
+Bugs fixed:
+Fixed callback not being called on both Android and iOS.
+
 ## 4.0.0
 BREAKING CHANGES:
 NordiDfu now uses a Singelton! The notation changes from NordicDfu.startDfu() to NordicDfu().startDfu()
