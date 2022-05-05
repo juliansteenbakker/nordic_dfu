@@ -22,6 +22,7 @@
     <!-- add android:usesPermissionFlags="neverForLocation" when you can strongly assert that
          your app never derives physical location from Bluetooth scan results. -->
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <application>
         <service android:name=".DfuService" />
