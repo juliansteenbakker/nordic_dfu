@@ -1,3 +1,7 @@
+## 5.0.1
+* [Android] Upgraded Nordic DFU Library to version 2.0.3
+* Upgraded some dependencies
+
 ## 5.0.0
 BREAKING CHANGES:
 Callback is now handled through functions in the StartDfu() method. Please see the example app for an example.
