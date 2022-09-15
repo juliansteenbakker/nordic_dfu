@@ -37,7 +37,7 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler,  EventChannel.StreamHa
         eventChannel = EventChannel(binding.binaryMessenger, "dev.steenbakker.nordic_dfu/event")
         eventChannel!!.setStreamHandler(this)
 
-        DfuServiceListenerHelper.registerProgressListener(binding.applicationContext, mDfuProgressListener)
+        
     }
 
     override fun onDetachedFromEngine(binding: FlutterPluginBinding) {
@@ -55,6 +55,7 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler,  EventChannel.StreamHa
     }
 
     override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
+        DfuServiceListenerHelper.registerProgressListener(binding.applicationContext, mDfuProgressListener)
         this.sink = events
     }
 
