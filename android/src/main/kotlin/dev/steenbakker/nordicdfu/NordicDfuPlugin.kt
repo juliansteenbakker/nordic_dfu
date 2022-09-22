@@ -55,7 +55,10 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler,  EventChannel.StreamHa
     }
 
     override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
-        DfuServiceListenerHelper.registerProgressListener(binding.applicationContext, mDfuProgressListener)
+        if (mContext != null) {
+            DfuServiceListenerHelper.registerProgressListener(mContext!!, mDfuProgressListener)
+        }
+
         this.sink = events
     }
 
