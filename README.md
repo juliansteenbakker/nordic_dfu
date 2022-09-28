@@ -11,7 +11,7 @@ Please see the example app for more information.
 
 ## 4.0.0 Breaking changes!
 From version 4.0.0, the NordicDfu class uses a Singleton.
-If you are comming from an older version, you have to change the notation from NordicDfu.startDfu() to NordicDfu().startDfu().
+If you are coming from an older version, you have to change the notation from NordicDfu.startDfu() to NordicDfu().startDfu().
 
 
 Fork from [flutter_nordic_dfu](https://pub.dev/packages/flutter_nordic_dfu) and updated with latest dependencies.

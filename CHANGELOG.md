@@ -1,3 +1,6 @@
+## 5.1.1
+* [iOS] Fixed build for iOS.
+
 ## 5.1.0
 * [Android] Fixed an issue which caused the callback to fail.
 * [Android] Upgraded Nordic DFU Library to version 2.2.0

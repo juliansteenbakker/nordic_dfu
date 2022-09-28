@@ -1,6 +1,6 @@
 name: nordic_dfu
 description: This library allows you to do a Device Firmware Update (DFU) of your nrf51 or nrf52 chip from Nordic Semiconductor. Fork of flutter-nordic-dfu.
-version: 5.1.0
+version: 5.1.1
 homepage: https://github.com/juliansteenbakker/nordic_dfu
 
 environment:
