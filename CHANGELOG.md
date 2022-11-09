@@ -1,3 +1,7 @@
+## 5.1.2
+* [Android] Updated Nordic DFU Library to version 2.2.2
+* Updated example app dependencies.
+
 ## 5.1.1
 * [iOS] Fixed build for iOS.
 
