@@ -8,12 +8,6 @@
 From version 5.0.0, the callbacks are defined as function parameters in NordicDfu().startDfu().
 Please see the example app for more information.
 
-
-## 4.0.0 Breaking changes!
-From version 4.0.0, the NordicDfu class uses a Singleton.
-If you are coming from an older version, you have to change the notation from NordicDfu.startDfu() to NordicDfu().startDfu().
-
-
 Fork from [flutter_nordic_dfu](https://pub.dev/packages/flutter_nordic_dfu) and updated with latest dependencies.
 
 This library allows you to do a Device Firmware Update (DFU) of your nrf51 or
