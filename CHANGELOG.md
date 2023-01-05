@@ -1,3 +1,6 @@
+## 5.2.1
+[Android] revert kotlin 1.8.0 to 1.7.10 due to compatibility issues.
+
 ## 5.2.0
 [Android] Updated Nordic DFU Library to version 2.3.0
 
