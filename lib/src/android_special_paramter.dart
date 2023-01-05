@@ -1,5 +1,5 @@
-/// Some parameter just use in Android
-/// All this parameters can see in <a href="https://github.com/NordicSemiconductor/Android-DFU-Library">
+/// Android parameters for DFUServiceInitiator object.
+/// See https://github.com/NordicSemiconductor/Android-DFU-Library for more information.
 class AndroidSpecialParameter {
   ///Sets whether the progress notification in the status bar should be disabled.
   ///Defaults to false.
@@ -77,4 +77,14 @@ class AndroidSpecialParameter {
     this.dataDelay = 400,
     this.numberOfRetries = 10,
   });
+
+  Map<String, dynamic> toJson() => {
+        'disableNotification': disableNotification,
+        'keepBond': keepBond,
+        'packetReceiptNotificationsEnabled': packetReceiptNotificationsEnabled,
+        'restoreBond': restoreBond,
+        'startAsForegroundService': startAsForegroundService,
+        'dataDelay': dataDelay,
+        'numberOfRetries': numberOfRetries
+      };
 }

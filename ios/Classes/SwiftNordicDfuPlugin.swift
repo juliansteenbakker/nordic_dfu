@@ -64,9 +64,15 @@ public class SwiftNordicDfuPlugin: NSObject, FlutterPlugin, FlutterStreamHandler
         }
         
         let forceDfu = arguments["forceDfu"] as? Bool
-        
+        let forceScanningForNewAddressInLegacyDfu = arguments["forceScanningForNewAddressInLegacyDfu"] as? Bool
+        let packetReceiptNotificationParameter = arguments["packetReceiptNotificationParameter"] as? UInt16
+        let connectionTimeout = arguments["connectionTimeout"] as? TimeInterval
+        let dataObjectPreparationDelay = arguments["dataObjectPreparationDelay"] as? TimeInterval
+        let alternativeAdvertisingNameEnabled = arguments["alternativeAdvertisingNameEnabled"] as? Bool
+        let alternativeAdvertisingName = arguments["alternativeAdvertisingName"] as? String
         let enableUnsafeExperimentalButtonlessServiceInSecureDfu = arguments["enableUnsafeExperimentalButtonlessServiceInSecureDfu"] as? Bool
-        
+        let disableResume = arguments["disableResume"] as? Bool
+
         let fileInAsset = (arguments["fileInAsset"] as? Bool) ?? false
         
         if (fileInAsset) {
@@ -79,14 +85,18 @@ public class SwiftNordicDfuPlugin: NSObject, FlutterPlugin, FlutterStreamHandler
             filePath = pathInAsset
         }
         
-        let alternativeAdvertisingNameEnabled = arguments["alternativeAdvertisingNameEnabled"] as? Bool
-        
         startDfu(address,
                  name: name,
                  filePath: filePath,
+                 packetReceiptNotificationParameter: packetReceiptNotificationParameter,
                  forceDfu: forceDfu,
-                 enableUnsafeExperimentalButtonlessServiceInSecureDfu: enableUnsafeExperimentalButtonlessServiceInSecureDfu,
+                 forceScanningForNewAddressInLegacyDfu: forceScanningForNewAddressInLegacyDfu,
+                 connectionTimeout: connectionTimeout,
+                 dataObjectPreparationDelay: dataObjectPreparationDelay,
                  alternativeAdvertisingNameEnabled: alternativeAdvertisingNameEnabled,
+                 alternativeAdvertisingName: alternativeAdvertisingName,
+                 enableUnsafeExperimentalButtonlessServiceInSecureDfu: enableUnsafeExperimentalButtonlessServiceInSecureDfu,
+                 disableResume: disableResume,
                  result: result)
     }
     
@@ -94,42 +104,45 @@ public class SwiftNordicDfuPlugin: NSObject, FlutterPlugin, FlutterStreamHandler
         _ address: String,
         name: String?,
         filePath: String,
+        packetReceiptNotificationParameter: UInt16?,
         forceDfu: Bool?,
-        enableUnsafeExperimentalButtonlessServiceInSecureDfu: Bool?,
+        forceScanningForNewAddressInLegacyDfu: Bool?,
+        connectionTimeout: TimeInterval?,
+        dataObjectPreparationDelay: TimeInterval?,
         alternativeAdvertisingNameEnabled: Bool?,
+        alternativeAdvertisingName: String?,
+        enableUnsafeExperimentalButtonlessServiceInSecureDfu: Bool?,
+        disableResume: Bool?,
         result: @escaping FlutterResult) {
         guard let uuid = UUID(uuidString: address) else {
             result(FlutterError(code: "DEVICE_ADDRESS_ERROR", message: "Device address conver to uuid failed", details: "Device uuid \(address) convert to uuid failed"))
             return
         }
         
-        do{
-        let firmware = try DFUFirmware(urlToZipFile: URL(fileURLWithPath: filePath)) 
+        do {
+            let firmware = try DFUFirmware(urlToZipFile: URL(fileURLWithPath: filePath))
             
-        
-        
-        let dfuInitiator = DFUServiceInitiator(queue: nil)
-            .with(firmware: firmware);
-        dfuInitiator.delegate = self
-        dfuInitiator.progressDelegate = self
-        dfuInitiator.logger = self
-        
-        if let enableUnsafeExperimentalButtonlessServiceInSecureDfu = enableUnsafeExperimentalButtonlessServiceInSecureDfu {
-            dfuInitiator.enableUnsafeExperimentalButtonlessServiceInSecureDfu = enableUnsafeExperimentalButtonlessServiceInSecureDfu
-        }
-        
-        if let forceDfu = forceDfu {
-            dfuInitiator.forceDfu = forceDfu
-        }
-        
-        if let alternativeAdvertisingNameEnabled = alternativeAdvertisingNameEnabled {
-            dfuInitiator.alternativeAdvertisingNameEnabled = alternativeAdvertisingNameEnabled
-        }
-        
-        pendingResult = result
-        deviceAddress = address
-        
-        dfuController = dfuInitiator.start(targetWithIdentifier: uuid)
+            let dfuInitiator = DFUServiceInitiator(queue: nil)
+                .with(firmware: firmware);
+            dfuInitiator.delegate = self
+            dfuInitiator.progressDelegate = self
+            dfuInitiator.logger = self
+            
+            packetReceiptNotificationParameter.map { dfuInitiator.packetReceiptNotificationParameter = $0 }
+            forceDfu.map { dfuInitiator.forceDfu = $0 }
+            forceScanningForNewAddressInLegacyDfu.map { dfuInitiator.forceScanningForNewAddressInLegacyDfu = $0 }
+            connectionTimeout.map { dfuInitiator.connectionTimeout = $0 }
+            dataObjectPreparationDelay.map { dfuInitiator.dataObjectPreparationDelay = $0 }
+            alternativeAdvertisingNameEnabled.map { dfuInitiator.alternativeAdvertisingNameEnabled = $0 }
+            alternativeAdvertisingName.map { dfuInitiator.alternativeAdvertisingName = $0 }
+            enableUnsafeExperimentalButtonlessServiceInSecureDfu.map { dfuInitiator.enableUnsafeExperimentalButtonlessServiceInSecureDfu = $0 }
+//            uuidHelper.map { dfuInitiator.uuidHelper = $0 }
+            disableResume.map { dfuInitiator.disableResume = $0 }
+            
+            pendingResult = result
+            deviceAddress = address
+            
+            dfuController = dfuInitiator.start(targetWithIdentifier: uuid)
         }
         catch{
         result(FlutterError(code: "DFU_FIRMWARE_NOT_FOUND", message: "Could not dfu zip file", details: nil))
@@ -177,6 +190,6 @@ public class SwiftNordicDfuPlugin: NSObject, FlutterPlugin, FlutterStreamHandler
     
     //MARK: - LoggerDelegate
     public func logWith(_ level: LogLevel, message: String) {
-        //print("\(level.name()): \(message)")
+        print("\(level.name()): \(message)")
     }
 }

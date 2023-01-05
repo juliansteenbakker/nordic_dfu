@@ -52,16 +52,21 @@ class NordicDfu {
   static const EventChannel _eventChannel = EventChannel('$namespace/event');
   StreamSubscription? events;
 
-  /// Start dfu handle
+  /// Start the DFU Process.
+  /// Required:
   /// [address] android: mac address iOS: device uuid
   /// [filePath] zip file path
-  /// [name] device name
-  /// [progressListener] Dfu progress listener, You can use [DefaultDfuProgressListenerAdapter]
+  ///
+  /// Optional:
+  /// [name] The device name
   /// [fileInAsset] if [filePath] is a asset path like 'asset/file.zip', must set this value to true, else false
   /// [forceDfu] Legacy DFU only, see in nordic library, default is false
+  /// [numberOfPackets] The number of packets of firmware data to be received by the DFU target before sending a new Packet Receipt Notification.
   /// [enableUnsafeExperimentalButtonlessServiceInSecureDfu] see in nordic library, default is false
   /// [androidSpecialParameter] this parameters is only used by android lib
   /// [iosSpecialParameter] this parameters is only used by ios lib
+  ///
+  /// Callbacks:
   /// [onDeviceConnected] Callback for when device is connected
   /// [onDeviceConnecting] Callback for when device is connecting
   /// [onDeviceDisconnected] Callback for when device is disconnected
@@ -170,17 +175,8 @@ class NordicDfu {
       'numberOfPackets': numberOfPackets,
       'enableUnsafeExperimentalButtonlessServiceInSecureDfu':
           enableUnsafeExperimentalButtonlessServiceInSecureDfu,
-      'disableNotification': androidSpecialParameter.disableNotification,
-      'keepBond': androidSpecialParameter.keepBond,
-      'restoreBond': androidSpecialParameter.restoreBond,
-      'packetReceiptNotificationsEnabled':
-          androidSpecialParameter.packetReceiptNotificationsEnabled,
-      'startAsForegroundService':
-          androidSpecialParameter.startAsForegroundService,
-      'dataDelay': androidSpecialParameter.dataDelay,
-      'numberOfRetries': androidSpecialParameter.numberOfRetries,
-      'alternativeAdvertisingNameEnabled':
-          iosSpecialParameter.alternativeAdvertisingNameEnabled
+      ...androidSpecialParameter.toJson(),
+      ...iosSpecialParameter.toJson()
     });
   }
 
