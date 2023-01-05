@@ -37,7 +37,7 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler,  EventChannel.StreamHa
         eventChannel = EventChannel(binding.binaryMessenger, "dev.steenbakker.nordic_dfu/event")
         eventChannel!!.setStreamHandler(this)
 
-        
+
     }
 
     override fun onDetachedFromEngine(binding: FlutterPluginBinding) {
@@ -79,12 +79,15 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler,  EventChannel.StreamHa
         val restoreBond = call.argument<Boolean>("restoreBond")
         val startAsForegroundService = call.argument<Boolean>("startAsForegroundService")
         val numberOfPackets = call.argument<Int>("numberOfPackets")
-        val enablePRNs = call.argument<Boolean>("enablePRNs")
+        val dataDelay = call.argument<Long>("dataDelay")
+        val numberOfRetries = call.argument<Int>("numberOfRetries")
+
         if (fileInAsset == null) fileInAsset = false
         if (address == null || filePath == null) {
             result.error("Abnormal parameter", "address and filePath are required", null)
             return
         }
+
         if (fileInAsset) {
             val loader = FlutterInjector.instance().flutterLoader()
             filePath = loader.getLookupKeyForAsset(filePath)
@@ -100,7 +103,10 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler,  EventChannel.StreamHa
             filePath = tempFileName
         }
         pendingResult = result
-        startDfu(address, name, filePath, forceDfu, enableUnsafeExperimentalButtonlessServiceInSecureDfu, disableNotification, keepBond, packetReceiptNotificationsEnabled, restoreBond, startAsForegroundService, result, numberOfPackets, enablePRNs)
+        startDfu(
+            address, name, filePath, forceDfu, enableUnsafeExperimentalButtonlessServiceInSecureDfu,
+            disableNotification, keepBond, packetReceiptNotificationsEnabled, restoreBond, startAsForegroundService,
+            result, numberOfPackets, dataDelay, numberOfRetries)
     }
 
     private fun abortDfu() {
@@ -109,21 +115,26 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler,  EventChannel.StreamHa
         }
     }
 
-    private fun startDfu(address: String, name: String?, filePath: String?, forceDfu: Boolean?, enableUnsafeExperimentalButtonlessServiceInSecureDfu: Boolean?, disableNotification: Boolean?, keepBond: Boolean?, packetReceiptNotificationsEnabled: Boolean?, restoreBond: Boolean?, startAsForegroundService: Boolean?, result: MethodChannel.Result, numberOfPackets: Int?, enablePRNs: Boolean?) {
+    private fun startDfu(
+        address: String,
+        name: String?,
+        filePath: String,
+        forceDfu: Boolean?,
+        enableUnsafeExperimentalButtonlessServiceInSecureDfu: Boolean?,
+        disableNotification: Boolean?,
+        keepBond: Boolean?,
+        packetReceiptNotificationsEnabled: Boolean?,
+        restoreBond: Boolean?,
+        startAsForegroundService: Boolean?,
+        result: MethodChannel.Result,
+        numberOfPackets: Int?,
+    dataDelay: Long?,
+    numberOfRetries: Int?) {
+
         val starter = DfuServiceInitiator(address)
-                .setZip(filePath!!)
-                .setKeepBond(true)
-                .setForceDfu(forceDfu ?: false)
-                .setPacketsReceiptNotificationsEnabled(enablePRNs
-                        ?: (Build.VERSION.SDK_INT < Build.VERSION_CODES.M))
-                .setPacketsReceiptNotificationsValue(numberOfPackets ?: 0)
-                .setPrepareDataObjectDelay(400)
-                .setUnsafeExperimentalButtonlessServiceInSecureDfuEnabled(true)
-                .setNumberOfRetries(10)
-        if (name != null) {
-            starter.setDeviceName(name)
-        }
-        pendingResult = result
+                .setZip(filePath)
+
+        if (name != null) starter.setDeviceName(name)
         if (enableUnsafeExperimentalButtonlessServiceInSecureDfu != null) {
             starter.setUnsafeExperimentalButtonlessServiceInSecureDfuEnabled(enableUnsafeExperimentalButtonlessServiceInSecureDfu)
         }
@@ -135,6 +146,17 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler,  EventChannel.StreamHa
         if (packetReceiptNotificationsEnabled != null) {
             starter.setPacketsReceiptNotificationsEnabled(packetReceiptNotificationsEnabled)
         }
+        if (numberOfPackets != null) {
+            starter.setPacketsReceiptNotificationsValue(numberOfPackets)
+        }
+        if (dataDelay != null) {
+            starter.setPrepareDataObjectDelay(dataDelay)
+        }
+        if (numberOfRetries != null) {
+            starter.setNumberOfRetries(numberOfRetries)
+        }
+
+        pendingResult = result
 
         // fix notification on android 8 and above
         if (startAsForegroundService == null || startAsForegroundService) {

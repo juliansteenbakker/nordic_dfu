@@ -41,11 +41,40 @@ class AndroidSpecialParameter {
   /// older ones.
   final bool? packetReceiptNotificationsEnabled;
 
+  /// This method sets the duration of a delay, that the service will wait before
+  /// sending each data object in Secure DFU. The delay will be done after a data object is created,
+  /// and before any data byte is sent. The default value is 0, which disables this feature.
+  ///
+  /// It has been found, that a delay of at least 300ms reduces the risk of packet lose
+  /// (the bootloader needs some time to prepare flash memory) on DFU bootloader from SDK 15 and 16.
+  /// The delay does not have to be longer than 400 ms, as according to performed tests, such delay is sufficient.
+  ///
+  /// The longer the delay, the more time DFU will take to complete
+  /// (delay will be repeated for each data object (4096 bytes)). However, with too small delay
+  /// a packet lose may occur, causing the service to enable PRN and set them to 1 making DFU process very, very slow (but reliable).
+  ///
+  /// Default: 400
+  final int dataDelay;
+
+  /// Sets the number of retries that the DFU service will use to complete DFU. The default value is 0, for backwards compatibility reason.
+  ///
+  /// If the given value is greater than 0, the service will restart itself at most max times in case of an undesired
+  /// disconnection during DFU operation. This attempt counter is independent from another counter, for reconnection attempts,
+  /// which is equal to 3. The latter one will be used when connection will fail with an error (possible packet collision or any other reason).
+  /// After successful connection, the reconnection counter is reset, while the retry counter is cleared after a DFU finishes with success.
+  ///
+  /// The service will not try to retry DFU in case of any other error, for instance an error sent from the target device.
+  ///
+  /// Default: 10
+  final int numberOfRetries;
+
   const AndroidSpecialParameter({
     this.disableNotification,
     this.keepBond,
     this.packetReceiptNotificationsEnabled,
     this.restoreBond,
     this.startAsForegroundService,
+    this.dataDelay = 400,
+    this.numberOfRetries = 10,
   });
 }

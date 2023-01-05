@@ -80,7 +80,6 @@ class NordicDfu {
     String? name,
     bool? fileInAsset,
     bool? forceDfu,
-    bool? enablePRNs,
     int? numberOfPackets,
     bool? enableUnsafeExperimentalButtonlessServiceInSecureDfu,
     AndroidSpecialParameter androidSpecialParameter =
@@ -168,7 +167,6 @@ class NordicDfu {
       'name': name,
       'fileInAsset': fileInAsset,
       'forceDfu': forceDfu,
-      'enablePRNs': enablePRNs,
       'numberOfPackets': numberOfPackets,
       'enableUnsafeExperimentalButtonlessServiceInSecureDfu':
           enableUnsafeExperimentalButtonlessServiceInSecureDfu,
@@ -179,8 +177,10 @@ class NordicDfu {
           androidSpecialParameter.packetReceiptNotificationsEnabled,
       'startAsForegroundService':
           androidSpecialParameter.startAsForegroundService,
+      'dataDelay': androidSpecialParameter.dataDelay,
+      'numberOfRetries': androidSpecialParameter.numberOfRetries,
       'alternativeAdvertisingNameEnabled':
-          iosSpecialParameter.alternativeAdvertisingNameEnabled,
+          iosSpecialParameter.alternativeAdvertisingNameEnabled
     });
   }
 
