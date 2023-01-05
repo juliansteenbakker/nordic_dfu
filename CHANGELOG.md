@@ -1,3 +1,6 @@
+## 5.2.0
+[Android] Updated Nordic DFU Library to version 2.3.0
+
 ## 5.1.2
 * [Android] Updated Nordic DFU Library to version 2.2.2
 * Updated example app dependencies.
