@@ -4,7 +4,8 @@
 [![mobile_scanner](https://github.com/juliansteenbakker/nordic_dfu/actions/workflows/flutter_format.yml/badge.svg)](https://github.com/juliansteenbakker/nordic_dfu/actions/workflows/flutter_format.yml)
 [![GitHub Sponsors](https://img.shields.io/github/sponsors/juliansteenbakker?label=sponsor%20me%20)](https://github.com/sponsors/juliansteenbakker)
 
-## 5.0.0 Breaking changes!
+## 5.3.0 Breaking changes!
+From version 5.3.0, macos implimentation.
 From version 5.0.0, the callbacks are defined as function parameters in NordicDfu().startDfu().
 Please see the example app for more information.
 
