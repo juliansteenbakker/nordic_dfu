@@ -3,12 +3,11 @@
 [![pub package](https://img.shields.io/pub/v/nordic_dfu.svg)](https://pub.dev/packages/nordic_dfu)
 [![mobile_scanner](https://github.com/juliansteenbakker/nordic_dfu/actions/workflows/flutter_format.yml/badge.svg)](https://github.com/juliansteenbakker/nordic_dfu/actions/workflows/flutter_format.yml)
 [![GitHub Sponsors](https://img.shields.io/github/sponsors/juliansteenbakker?label=sponsor%20me%20)](https://github.com/sponsors/juliansteenbakker)
+## 6.0.0
+Version 6.0.0 adds support for macos.
 
-## 6.0.0 Breaking changes!
-From version 6.0.0, macos implimentation.
-
+## 5.0.0 Breaking changes!
 From version 5.0.0, the callbacks are defined as function parameters in NordicDfu().startDfu().
-
 Please see the example app for more information.
 
 Fork from [flutter_nordic_dfu](https://pub.dev/packages/flutter_nordic_dfu) and updated with latest dependencies.
