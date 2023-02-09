@@ -6,14 +6,10 @@
 ## 6.0.0
 Version 6.0.0 adds support for macos.
 
-## 5.0.0 Breaking changes!
-From version 5.0.0, the callbacks are defined as function parameters in NordicDfu().startDfu().
-Please see the example app for more information.
-
 Fork from [flutter_nordic_dfu](https://pub.dev/packages/flutter_nordic_dfu) and updated with latest dependencies.
 
 This library allows you to do a Device Firmware Update (DFU) of your nrf51 or
-nrf52 chip from Nordic Semiconductor. It works for Android and iOS.
+nrf52 chip from Nordic Semiconductor. It works for Android, iOS, and MacOS.
 
 This is the implementation of the reference "[react-native-nordic-dfu](https://github.com/Pilloxa/react-native-nordic-dfu)"
 
