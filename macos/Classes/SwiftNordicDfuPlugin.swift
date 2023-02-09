@@ -71,7 +71,7 @@ public class SwiftNordicDfuPlugin: NSObject, FlutterPlugin, FlutterStreamHandler
         
         if (fileInAsset) {
             //let key = registrar.lookupKey(forAsset: filePath)
-            guard let pathInAsset = Bundle.main.path(forResource: "key", ofType: nil) else {
+            guard let pathInAsset = Bundle.main.path(forResource: filePath, ofType: nil) else {
                 result(FlutterError(code: "ABNORMAL_PARAMETER", message: "file in asset not found \(filePath)", details: nil))
                 return
             }
