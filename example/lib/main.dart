@@ -1,8 +1,9 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:flutter/material.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:flutter_blue/flutter_blue.dart';
 import 'package:nordic_dfu/nordic_dfu.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -16,7 +17,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  final FlutterBluePlus flutterBlue = FlutterBluePlus.instance;
+  final FlutterBlue flutterBlue = FlutterBlue.instance;
   StreamSubscription<ScanResult>? scanSubscription;
   List<ScanResult> scanResults = <ScanResult>[];
   bool dfuRunning = false;
@@ -57,12 +58,15 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> startScan() async {
     // You can request multiple permissions at once.
-    await [
-      Permission.bluetoothAdvertise,
-      Permission.bluetoothConnect,
-      Permission.bluetoothScan,
-      Permission.bluetooth,
-    ].request();
+
+    if (!Platform.isMacOS) {
+      await [
+        Permission.bluetoothAdvertise,
+        Permission.bluetoothConnect,
+        Permission.bluetoothScan,
+        Permission.bluetooth,
+      ].request();
+    }
 
     scanSubscription?.cancel();
     setState(() {
