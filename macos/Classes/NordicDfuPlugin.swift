@@ -81,6 +81,8 @@ public class NordicDfuPlugin: NSObject, FlutterPlugin, FlutterStreamHandler, DFU
         }
 
         let alternativeAdvertisingNameEnabled = arguments["alternativeAdvertisingNameEnabled"] as? Bool
+        
+        let packetReceiptNotificationParameter = arguments["packetReceiptNotificationParameter"] as? UInt16
 
         startDfu(address,
                  name: name,
@@ -88,6 +90,7 @@ public class NordicDfuPlugin: NSObject, FlutterPlugin, FlutterStreamHandler, DFU
                  forceDfu: forceDfu,
                  enableUnsafeExperimentalButtonlessServiceInSecureDfu: enableUnsafeExperimentalButtonlessServiceInSecureDfu,
                  alternativeAdvertisingNameEnabled: alternativeAdvertisingNameEnabled,
+                 packetReceiptNotificationParameter: packetReceiptNotificationParameter,
                  result: result)
     }
 
@@ -98,6 +101,7 @@ public class NordicDfuPlugin: NSObject, FlutterPlugin, FlutterStreamHandler, DFU
         forceDfu: Bool?,
         enableUnsafeExperimentalButtonlessServiceInSecureDfu: Bool?,
         alternativeAdvertisingNameEnabled: Bool?,
+        packetReceiptNotificationParameter: UInt16?,
         result: @escaping FlutterResult) {
         guard let uuid = UUID(uuidString: address) else {
             result(FlutterError(code: "DEVICE_ADDRESS_ERROR", message: "Device address conver to uuid failed", details: "Device uuid \(address) convert to uuid failed"))
@@ -109,8 +113,11 @@ public class NordicDfuPlugin: NSObject, FlutterPlugin, FlutterStreamHandler, DFU
 
 
 
-        let dfuInitiator = DFUServiceInitiator(queue: nil)
+            let dfuInitiator = DFUServiceInitiator(queue: nil)
             .with(firmware: firmware);
+            if (packetReceiptNotificationParameter != nil) {
+                dfuInitiator.packetReceiptNotificationParameter = packetReceiptNotificationParameter!
+            }
         dfuInitiator.delegate = self
         dfuInitiator.progressDelegate = self
         dfuInitiator.logger = self

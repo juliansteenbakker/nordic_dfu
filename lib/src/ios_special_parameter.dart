@@ -77,6 +77,11 @@ class IosSpecialParameter {
   /// Disable the ability for the DFU process to resume from where it was.
   final bool? disableResume;
 
+  /// The number of packets of firmware data to be received by the DFU target before
+  /// sending a new Packet Receipt Notification. If this value is 0, the packet receipt
+  /// notification will be disabled by the DFU target. Default value is 12.
+  final int? packetReceiptNotificationParameter;
+
   const IosSpecialParameter({
     this.alternativeAdvertisingNameEnabled,
     this.forceScanningForNewAddressInLegacyDfu,
@@ -84,6 +89,7 @@ class IosSpecialParameter {
     this.dataObjectPreparationDelay,
     this.alternativeAdvertisingName,
     this.disableResume,
+    this.packetReceiptNotificationParameter
   });
 
   Map<String, dynamic> toJson() => {
@@ -93,6 +99,7 @@ class IosSpecialParameter {
         'connectionTimeout': connectionTimeout,
         'dataObjectPreparationDelay': dataObjectPreparationDelay,
         'alternativeAdvertisingName': alternativeAdvertisingName,
-        'disableResume': disableResume
+        'disableResume': disableResume,
+    'packetReceiptNotificationParameter': packetReceiptNotificationParameter
       };
 }
