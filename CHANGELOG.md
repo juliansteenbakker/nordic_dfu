@@ -1,5 +1,9 @@
-## 5.3.0
-[Android] Add dataDelay and numberOfRetries parameters to androidSpecialParameter.
+## 6.0.0
+macOS is now supported! The configuration is the same as for iOS.
+
+Other changes:
+* [Android] Add dataDelay and numberOfRetries parameters to androidSpecialParameter.
+* [iOS] packetReceiptNotificationParameter parameter is added. Set this to 1 if you get error 308.
 
 ## 5.2.1
 [Android] revert kotlin 1.8.0 to 1.7.10 due to compatibility issues.

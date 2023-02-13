@@ -82,14 +82,15 @@ class IosSpecialParameter {
   /// notification will be disabled by the DFU target. Default value is 12.
   final int? packetReceiptNotificationParameter;
 
-  const IosSpecialParameter(
-      {this.alternativeAdvertisingNameEnabled,
-      this.forceScanningForNewAddressInLegacyDfu,
-      this.connectionTimeout,
-      this.dataObjectPreparationDelay,
-      this.alternativeAdvertisingName,
-      this.disableResume,
-      this.packetReceiptNotificationParameter,});
+  const IosSpecialParameter({
+    this.alternativeAdvertisingNameEnabled,
+    this.forceScanningForNewAddressInLegacyDfu,
+    this.connectionTimeout,
+    this.dataObjectPreparationDelay,
+    this.alternativeAdvertisingName,
+    this.disableResume,
+    this.packetReceiptNotificationParameter,
+  });
 
   Map<String, dynamic> toJson() => {
         'alternativeAdvertisingNameEnabled': alternativeAdvertisingNameEnabled,
