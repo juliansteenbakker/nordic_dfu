@@ -1,3 +1,6 @@
+## 6.0.1
+[Android] Fixed an exception when starting DFU.
+
 ## 6.0.0
 macOS is now supported! The configuration is the same as for iOS.
 
