@@ -82,7 +82,7 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHan
         val restoreBond = call.argument<Boolean>("restoreBond")
         val startAsForegroundService = call.argument<Boolean>("startAsForegroundService")
         val numberOfPackets = call.argument<Int>("numberOfPackets")
-        val dataDelay = call.argument<Long>("dataDelay")
+        val dataDelay = call.argument<Int>("dataDelay")
         val numberOfRetries = call.argument<Int>("numberOfRetries")
 
         if (fileInAsset == null) fileInAsset = false
@@ -143,7 +143,7 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHan
         startAsForegroundService: Boolean?,
         result: MethodChannel.Result,
         numberOfPackets: Int?,
-        dataDelay: Long?,
+        dataDelay: Int?,
         numberOfRetries: Int?
     ) {
 
@@ -167,7 +167,7 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHan
             starter.setPacketsReceiptNotificationsValue(numberOfPackets)
         }
         if (dataDelay != null) {
-            starter.setPrepareDataObjectDelay(dataDelay)
+            starter.setPrepareDataObjectDelay(dataDelay.toLong())
         }
         if (numberOfRetries != null) {
             starter.setNumberOfRetries(numberOfRetries)
