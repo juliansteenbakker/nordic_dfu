@@ -12,6 +12,7 @@ import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
+import no.nordicsemi.android.dfu.DfuBaseService
 import no.nordicsemi.android.dfu.DfuBaseService.NOTIFICATION_ID
 import no.nordicsemi.android.dfu.DfuProgressListenerAdapter
 import no.nordicsemi.android.dfu.DfuServiceController
@@ -30,6 +31,21 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHan
 
     private var controller: DfuServiceController? = null
     private var hasCreateNotification = false
+
+    private var update_counter = 0
+
+    private var dfuServiceClasses = arrayListOf<Class<out DfuBaseService>>(
+        DfuService::class.java,
+        DfuService2::class.java,
+        DfuService3::class.java,
+        DfuService4::class.java,
+        DfuService5::class.java,
+        DfuService6::class.java,
+        DfuService7::class.java,    
+        DfuService8::class.java,
+        DfuService9::class.java,
+        DfuService10::class.java,
+    )
 
     override fun onAttachedToEngine(binding: FlutterPluginBinding) {
         mContext = binding.applicationContext
@@ -182,7 +198,13 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHan
                 hasCreateNotification = true
             }
         }
-        controller = starter.start(mContext!!, DfuService::class.java)
+
+        var unusedServiceClass = getUnusedServiceClass(address);
+        controller = starter.start(mContext!!, unusedServiceClass)
+    }
+
+    private fun getUnusedServiceClass(address : String): Class<out DfuBaseService> {
+        return dfuServiceClasses.elementAt(update_counter++ % dfuServiceClasses.size)
     }
 
     private fun cancelNotification() {

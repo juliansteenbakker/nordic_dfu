@@ -26,5 +26,14 @@
 
     <application>
         <service android:name=".DfuService" />
+        <service android:name=".DfuService2" />
+        <service android:name=".DfuService3" />
+        <service android:name=".DfuService4" />
+        <service android:name=".DfuService5" />
+        <service android:name=".DfuService6" />
+        <service android:name=".DfuService7" />
+        <service android:name=".DfuService8" />
+        <service android:name=".DfuService9" />
+        <service android:name=".DfuService10" />
     </application>
 </manifest>
