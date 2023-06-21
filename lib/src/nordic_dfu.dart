@@ -50,7 +50,7 @@ class NordicDfu {
   static const MethodChannel _methodChannel =
       MethodChannel('$namespace/method');
   static const EventChannel _eventChannel = EventChannel('$namespace/event');
-  StreamSubscription? events;
+  Map<String, StreamSubscription> events = {};
 
   /// Start the DFU Process.
   /// Required:
@@ -103,7 +103,7 @@ class NordicDfu {
     DfuErrorCallback? onError,
     DfuProgressCallback? onProgressChanged,
   }) async {
-    events = _eventChannel.receiveBroadcastStream().listen((data) {
+    events[address] = _eventChannel.receiveBroadcastStream().listen((data) {
       data as Map;
       for (final key in data.keys) {
         switch (key) {
@@ -121,11 +121,17 @@ class NordicDfu {
             break;
           case 'onDfuAborted':
             onDfuAborted?.call(data[key] as String);
-            events?.cancel();
+            if (events.length == 1) {
+              events[data[key] as String]?.cancel();
+            }
+            events.remove(data[key] as String);
             break;
           case 'onDfuCompleted':
             onDfuCompleted?.call(data[key] as String);
-            events?.cancel();
+            if (events.length == 1) {
+              events[data[key] as String]?.cancel();
+            }
+            events.remove(data[key] as String);
             break;
           case 'onDfuProcessStarted':
             onDfuProcessStarted?.call(data[key] as String);
@@ -148,7 +154,10 @@ class NordicDfu {
               result['errorType'] as int,
               result['message'] as String,
             );
-            events?.cancel();
+            if (events.length == 1) {
+              events[result['deviceAddress'] as String]?.cancel();
+            }
+            events.remove(result['deviceAddress'] as String);
             break;
           case 'onProgressChanged':
             final Map<String, dynamic> result =
