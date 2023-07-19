@@ -32,6 +32,8 @@ android {
     defaultConfig {
         minSdkVersion 18
     }
+
+    namespace 'dev.steenbakker.nordic_dfu'
 }
 
 dependencies {

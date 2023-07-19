@@ -1,5 +1,4 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="dev.steenbakker.nordicdfu">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!-- required for API 18 - 30 -->
     <uses-permission
@@ -12,7 +11,7 @@
     <!-- required for API 23 - 30 -->
     <uses-permission-sdk-23
         android:name="android.permission.ACCESS_COARSE_LOCATION"
-        android:maxSdkVersion="30" />
+        android:maxSdkVersion="32" />
     <uses-permission-sdk-23
         android:name="android.permission.ACCESS_FINE_LOCATION"
         android:maxSdkVersion="30" />
@@ -25,6 +24,6 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <application>
-        <service android:name=".DfuService" />
+        <service android:name="dev.steenbakker.nordicdfu.DfuService" />
     </application>
 </manifest>

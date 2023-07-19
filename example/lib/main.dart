@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:flutter/material.dart';
-import 'package:flutter_blue/flutter_blue.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:nordic_dfu/nordic_dfu.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -17,7 +17,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  final FlutterBlue flutterBlue = FlutterBlue.instance;
+  final FlutterBluePlus flutterBlue = FlutterBluePlus.instance;
   StreamSubscription<ScanResult>? scanSubscription;
   List<ScanResult> scanResults = <ScanResult>[];
   bool dfuRunning = false;
