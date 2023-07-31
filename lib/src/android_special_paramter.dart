@@ -82,7 +82,7 @@ class AndroidSpecialParameter {
     this.startAsForegroundService,
     this.dataDelay = 400,
     this.numberOfRetries = 10,
-    this.rebootTime
+    this.rebootTime,
   });
 
   Map<String, dynamic> toJson() => {
@@ -93,6 +93,6 @@ class AndroidSpecialParameter {
         'startAsForegroundService': startAsForegroundService,
         'dataDelay': dataDelay,
         'numberOfRetries': numberOfRetries,
-    'rebootTime': rebootTime
+        'rebootTime': rebootTime
       };
 }
