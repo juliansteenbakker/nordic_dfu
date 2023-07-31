@@ -46,6 +46,7 @@ class _MyAppState extends State<MyApp> {
         ) {
           debugPrint('deviceAddress: $deviceAddress, percent: $percent');
         },
+        // androidSpecialParameter: const AndroidSpecialParameter(rebootTime: 1000),
       );
       debugPrint(s);
       dfuRunning = false;

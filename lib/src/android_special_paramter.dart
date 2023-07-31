@@ -68,6 +68,12 @@ class AndroidSpecialParameter {
   /// Default: 10
   final int numberOfRetries;
 
+  /// Sets the time required by the device to reboot. The library will wait for this time before
+  /// scanning for the device in bootloader mode.
+  ///
+  /// rebootTime the reboot time in milliseconds, default 0.
+  final int? rebootTime;
+
   const AndroidSpecialParameter({
     this.disableNotification,
     this.keepBond,
@@ -76,6 +82,7 @@ class AndroidSpecialParameter {
     this.startAsForegroundService,
     this.dataDelay = 400,
     this.numberOfRetries = 10,
+    this.rebootTime
   });
 
   Map<String, dynamic> toJson() => {
@@ -85,6 +92,7 @@ class AndroidSpecialParameter {
         'restoreBond': restoreBond,
         'startAsForegroundService': startAsForegroundService,
         'dataDelay': dataDelay,
-        'numberOfRetries': numberOfRetries
+        'numberOfRetries': numberOfRetries,
+    'rebootTime': rebootTime
       };
 }

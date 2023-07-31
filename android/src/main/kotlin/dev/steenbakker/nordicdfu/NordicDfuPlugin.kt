@@ -85,6 +85,8 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHan
         val dataDelay = call.argument<Int>("dataDelay")
         val numberOfRetries = call.argument<Int>("numberOfRetries")
 
+        val rebootTime = call.argument<Long>("rebootTime")
+
         if (fileInAsset == null) fileInAsset = false
         if (address == null || filePath == null) {
             result.error("Abnormal parameter", "address and filePath are required", null)
@@ -120,7 +122,8 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHan
             result,
             numberOfPackets,
             dataDelay,
-            numberOfRetries
+            numberOfRetries,
+            rebootTime
         )
     }
 
@@ -144,7 +147,8 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHan
         result: MethodChannel.Result,
         numberOfPackets: Int?,
         dataDelay: Int?,
-        numberOfRetries: Int?
+        numberOfRetries: Int?,
+        rebootTime: Long?
     ) {
 
         val starter = DfuServiceInitiator(address).setZip(filePath)
@@ -173,6 +177,9 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHan
             starter.setNumberOfRetries(numberOfRetries)
         }
 
+        if (rebootTime != null) {
+            starter.setRebootTime(rebootTime)
+        }
         pendingResult = result
 
         // fix notification on android 8 and above
