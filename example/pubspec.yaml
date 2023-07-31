@@ -9,15 +9,15 @@ dependencies:
   collection: ^1.16.0
   flutter:
     sdk: flutter
-  flutter_blue: ^0.8.0
+  flutter_blue_plus: ^1.12.8
   nordic_dfu:
     path: ../
-  permission_handler: ^10.2.0
+  permission_handler: ^10.4.3
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  lint: ^2.0.1
+  lint: ^2.1.2
 
 flutter:
   uses-material-design: true

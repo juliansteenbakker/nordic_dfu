@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:flutter/material.dart';
-import 'package:flutter_blue/flutter_blue.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:nordic_dfu/nordic_dfu.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -17,7 +17,6 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  final FlutterBlue flutterBlue = FlutterBlue.instance;
   StreamSubscription<ScanResult>? scanSubscription;
   List<ScanResult> scanResults = <ScanResult>[];
   bool dfuRunning = false;
@@ -71,10 +70,10 @@ class _MyAppState extends State<MyApp> {
     scanSubscription?.cancel();
     setState(() {
       scanResults.clear();
-      scanSubscription = flutterBlue.scan().listen(
+      scanSubscription = FlutterBluePlus.scan(allowDuplicates: true).listen(
         (scanResult) {
           if (scanResults.firstWhereOrNull(
-                (ele) => ele.device.id == scanResult.device.id,
+                (ele) => ele.device.remoteId == scanResult.device.remoteId,
               ) !=
               null) {
             return;
@@ -89,7 +88,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   void stopScan() {
-    flutterBlue.stopScan();
+    FlutterBluePlus.stopScan();
     scanSubscription?.cancel();
     scanSubscription = null;
     setState(() => scanSubscription = null);
@@ -147,7 +146,7 @@ class _MyAppState extends State<MyApp> {
               setState(() {
                 dfuRunningInx = index;
               });
-              await doDfu(result.device.id.id);
+              await doDfu(result.device.remoteId.str);
               setState(() {
                 dfuRunningInx = null;
               });
@@ -195,8 +194,8 @@ class DeviceItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var name = 'Unknown';
-    if (scanResult.device.name.isNotEmpty) {
-      name = scanResult.device.name;
+    if (scanResult.device.localName.isNotEmpty) {
+      name = scanResult.device.localName;
     }
     return Card(
       child: Padding(
@@ -209,7 +208,7 @@ class DeviceItem extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text(name),
-                  Text(scanResult.device.id.id),
+                  Text(scanResult.device.remoteId.str),
                   Text('RSSI: ${scanResult.rssi}'),
                 ],
               ),
