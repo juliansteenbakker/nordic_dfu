@@ -1,3 +1,7 @@
+## 6.1.0
+* [Android] Added rebootTime parameter.
+* [Android] Upgraded to gradle 8
+
 ## 6.0.1
 [Android] Fixed an exception when starting DFU.
 
