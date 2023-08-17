@@ -1,6 +1,10 @@
+## 6.1.1
+* [Android] Fix rebootTime parameter to convert to Long from Int (thanks @rstewart22 !)
+* [Android] Fix build for older AGP versions.
+
 ## 6.1.0
 * [Android] Added rebootTime parameter.
-* [Android] Upgraded to gradle 8
+* [Android] Upgraded to gradle 8.
 
 ## 6.0.1
 [Android] Fixed an exception when starting DFU.
