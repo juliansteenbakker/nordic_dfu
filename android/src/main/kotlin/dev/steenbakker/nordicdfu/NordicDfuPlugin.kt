@@ -85,7 +85,7 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHan
         val dataDelay = call.argument<Int>("dataDelay")
         val numberOfRetries = call.argument<Int>("numberOfRetries")
 
-        val rebootTime = call.argument<Long>("rebootTime")
+        val rebootTime = call.argument<Int>("rebootTime")?.toLong()
 
         if (fileInAsset == null) fileInAsset = false
         if (address == null || filePath == null) {
