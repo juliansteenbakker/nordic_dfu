@@ -100,6 +100,7 @@ class IosSpecialParameter {
         'dataObjectPreparationDelay': dataObjectPreparationDelay,
         'alternativeAdvertisingName': alternativeAdvertisingName,
         'disableResume': disableResume,
-        'packetReceiptNotificationParameter': packetReceiptNotificationParameter
+        'packetReceiptNotificationParameter':
+            packetReceiptNotificationParameter,
       };
 }

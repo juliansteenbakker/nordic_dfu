@@ -176,7 +176,7 @@ class NordicDfu {
       'enableUnsafeExperimentalButtonlessServiceInSecureDfu':
           enableUnsafeExperimentalButtonlessServiceInSecureDfu,
       ...androidSpecialParameter.toJson(),
-      ...iosSpecialParameter.toJson()
+      ...iosSpecialParameter.toJson(),
     });
   }
 

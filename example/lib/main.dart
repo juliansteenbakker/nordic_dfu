@@ -114,7 +114,7 @@ class _MyAppState extends State<MyApp> {
               IconButton(
                 icon: const Icon(Icons.play_arrow),
                 onPressed: dfuRunning ? null : startScan,
-              )
+              ),
           ],
         ),
         body: !hasDevice
@@ -219,7 +219,7 @@ class DeviceItem extends StatelessWidget {
               child: isRunningItem!
                   ? const Text('Abort Dfu')
                   : const Text('Start Dfu'),
-            )
+            ),
           ],
         ),
       ),

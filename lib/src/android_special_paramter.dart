@@ -93,6 +93,6 @@ class AndroidSpecialParameter {
         'startAsForegroundService': startAsForegroundService,
         'dataDelay': dataDelay,
         'numberOfRetries': numberOfRetries,
-        'rebootTime': rebootTime
+        'rebootTime': rebootTime,
       };
 }
