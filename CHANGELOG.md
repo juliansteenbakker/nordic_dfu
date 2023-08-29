@@ -1,3 +1,6 @@
+## 6.1.2
+* [Android] Fixed an issue which caused DFU to not work.
+
 ## 6.1.1
 * [Android] Fix rebootTime parameter to convert to Long from Int (thanks @rstewart22 !)
 * [Android] Fix build for older AGP versions.
