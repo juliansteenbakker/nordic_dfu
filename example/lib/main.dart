@@ -71,6 +71,7 @@ class _MyAppState extends State<MyApp> {
     scanSubscription?.cancel();
     setState(() {
       scanResults.clear();
+      // ignore: deprecated_member_use
       scanSubscription = FlutterBluePlus.scan(allowDuplicates: true).listen(
         (scanResult) {
           if (scanResults.firstWhereOrNull(
@@ -195,8 +196,8 @@ class DeviceItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var name = 'Unknown';
-    if (scanResult.device.localName.isNotEmpty) {
-      name = scanResult.device.localName;
+    if (scanResult.device.platformName.isNotEmpty) {
+      name = scanResult.device.platformName;
     }
     return Card(
       child: Padding(
