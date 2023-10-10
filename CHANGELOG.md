@@ -1,3 +1,7 @@
+## 6.1.3
+* [Android] Updated Nordic DFU Library to version 2.3.1
+* [Android] Fix crash on Android 14
+
 ## 6.1.2
 * [Android] Fixed an issue which caused DFU to not work.
 
