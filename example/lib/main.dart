@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:collection/collection.dart' show IterableExtension;
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:nordic_dfu/nordic_dfu.dart';
@@ -196,8 +195,8 @@ class DeviceItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var name = 'Unknown';
-    if (scanResult.device.platformName.isNotEmpty) {
-      name = scanResult.device.platformName;
+    if (scanResult.device.localName.isNotEmpty) {
+      name = scanResult.device.localName;
     }
     return Card(
       child: Padding(
