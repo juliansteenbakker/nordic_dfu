@@ -1,3 +1,7 @@
+## 6.1.4
+* [Android] Updated Nordic DFU Library to version 2.4.2
+* [iOS] Updated Nordic DFU Library to version 4.15.0
+
 ## 6.1.3
 * [Android] Updated Nordic DFU Library to version 2.3.1
 * [Android] Fix crash on Android 14

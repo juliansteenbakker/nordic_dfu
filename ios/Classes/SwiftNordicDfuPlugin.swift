@@ -1,6 +1,6 @@
 import Flutter
 import UIKit
-import iOSDFULibrary
+import NordicDFU
 import CoreBluetooth
 
 public class SwiftNordicDfuPlugin: NSObject, FlutterPlugin, FlutterStreamHandler, DFUServiceDelegate, DFUProgressDelegate, LoggerDelegate {
