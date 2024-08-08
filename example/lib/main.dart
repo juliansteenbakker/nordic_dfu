@@ -41,13 +41,13 @@ class _MyAppState extends State<MyApp> {
         //   debugPrint('deviceAddress: $string');
         // },
         onProgressChanged: (
-            deviceAddress,
-            percent,
-            speed,
-            avgSpeed,
-            currentPart,
-            partsTotal,
-            ) {
+          deviceAddress,
+          percent,
+          speed,
+          avgSpeed,
+          currentPart,
+          partsTotal,
+        ) {
           debugPrint('deviceAddress: $deviceAddress, percent: $percent');
         },
         // androidSpecialParameter: const AndroidSpecialParameter(rebootTime: 1000),
@@ -76,8 +76,11 @@ class _MyAppState extends State<MyApp> {
     FlutterBluePlus.startScan();
     scanResults.clear();
     scanSubscription = FlutterBluePlus.scanResults.expand((e) => e).listen(
-          (scanResult) {
-        if (scanResults.firstWhereOrNull((ele) => ele.device.remoteId == scanResult.device.remoteId) !=  null) {
+      (scanResult) {
+        if (scanResults.firstWhereOrNull(
+              (ele) => ele.device.remoteId == scanResult.device.remoteId,
+            ) !=
+            null) {
           return;
         }
         setState(() {
@@ -119,14 +122,14 @@ class _MyAppState extends State<MyApp> {
         ),
         body: !hasDevice
             ? const Center(
-          child: Text('No device'),
-        )
+                child: Text('No device'),
+              )
             : ListView.separated(
-          padding: const EdgeInsets.all(8),
-          itemBuilder: _deviceItemBuilder,
-          separatorBuilder: (context, index) => const SizedBox(height: 5),
-          itemCount: scanResults.length,
-        ),
+                padding: const EdgeInsets.all(8),
+                itemBuilder: _deviceItemBuilder,
+                separatorBuilder: (context, index) => const SizedBox(height: 5),
+                itemCount: scanResults.length,
+              ),
       ),
     );
   }
@@ -138,20 +141,20 @@ class _MyAppState extends State<MyApp> {
       scanResult: result,
       onPress: dfuRunning
           ? () async {
-        await NordicDfu().abortDfu();
-        setState(() {
-          dfuRunningInx = null;
-        });
-      }
+              await NordicDfu().abortDfu();
+              setState(() {
+                dfuRunningInx = null;
+              });
+            }
           : () async {
-        setState(() {
-          dfuRunningInx = index;
-        });
-        await doDfu(result.device.remoteId.str);
-        setState(() {
-          dfuRunningInx = null;
-        });
-      },
+              setState(() {
+                dfuRunningInx = index;
+              });
+              await doDfu(result.device.remoteId.str);
+              setState(() {
+                dfuRunningInx = null;
+              });
+            },
     );
   }
 }
