@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:collection/collection.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:nordic_dfu/nordic_dfu.dart';
@@ -24,11 +26,14 @@ class _MyAppState extends State<MyApp> {
   Future<void> doDfu(String deviceId) async {
     stopScan();
     dfuRunning = true;
+
+    final result = await FilePicker.platform.pickFiles();
+
+    if (result == null) return;
     try {
       final s = await NordicDfu().startDfu(
         deviceId,
-        'assets/file.zip',
-        fileInAsset: true,
+        result.files.single.path ?? '',
         onDeviceDisconnecting: (string) {
           debugPrint('deviceAddress: $string');
         },
@@ -36,13 +41,13 @@ class _MyAppState extends State<MyApp> {
         //   debugPrint('deviceAddress: $string');
         // },
         onProgressChanged: (
-          deviceAddress,
-          percent,
-          speed,
-          avgSpeed,
-          currentPart,
-          partsTotal,
-        ) {
+            deviceAddress,
+            percent,
+            speed,
+            avgSpeed,
+            currentPart,
+            partsTotal,
+            ) {
           debugPrint('deviceAddress: $deviceAddress, percent: $percent');
         },
         // androidSpecialParameter: const AndroidSpecialParameter(rebootTime: 1000),
@@ -68,24 +73,19 @@ class _MyAppState extends State<MyApp> {
     }
 
     scanSubscription?.cancel();
-    setState(() {
-      scanResults.clear();
-      // ignore: deprecated_member_use
-      scanSubscription = FlutterBluePlus.scan(allowDuplicates: true).listen(
-        (scanResult) {
-          if (scanResults.firstWhereOrNull(
-                (ele) => ele.device.remoteId == scanResult.device.remoteId,
-              ) !=
-              null) {
-            return;
-          }
-          setState(() {
-            /// add result to results if not added
-            scanResults.add(scanResult);
-          });
-        },
-      );
-    });
+    FlutterBluePlus.startScan();
+    scanResults.clear();
+    scanSubscription = FlutterBluePlus.scanResults.expand((e) => e).listen(
+          (scanResult) {
+        if (scanResults.firstWhereOrNull((ele) => ele.device.remoteId == scanResult.device.remoteId) !=  null) {
+          return;
+        }
+        setState(() {
+          /// add result to results if not added
+          scanResults.add(scanResult);
+        });
+      },
+    );
   }
 
   void stopScan() {
@@ -119,14 +119,14 @@ class _MyAppState extends State<MyApp> {
         ),
         body: !hasDevice
             ? const Center(
-                child: Text('No device'),
-              )
+          child: Text('No device'),
+        )
             : ListView.separated(
-                padding: const EdgeInsets.all(8),
-                itemBuilder: _deviceItemBuilder,
-                separatorBuilder: (context, index) => const SizedBox(height: 5),
-                itemCount: scanResults.length,
-              ),
+          padding: const EdgeInsets.all(8),
+          itemBuilder: _deviceItemBuilder,
+          separatorBuilder: (context, index) => const SizedBox(height: 5),
+          itemCount: scanResults.length,
+        ),
       ),
     );
   }
@@ -138,20 +138,20 @@ class _MyAppState extends State<MyApp> {
       scanResult: result,
       onPress: dfuRunning
           ? () async {
-              await NordicDfu().abortDfu();
-              setState(() {
-                dfuRunningInx = null;
-              });
-            }
+        await NordicDfu().abortDfu();
+        setState(() {
+          dfuRunningInx = null;
+        });
+      }
           : () async {
-              setState(() {
-                dfuRunningInx = index;
-              });
-              await doDfu(result.device.remoteId.str);
-              setState(() {
-                dfuRunningInx = null;
-              });
-            },
+        setState(() {
+          dfuRunningInx = index;
+        });
+        await doDfu(result.device.remoteId.str);
+        setState(() {
+          dfuRunningInx = null;
+        });
+      },
     );
   }
 }
@@ -195,8 +195,8 @@ class DeviceItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var name = 'Unknown';
-    if (scanResult.device.localName.isNotEmpty) {
-      name = scanResult.device.localName;
+    if (scanResult.device.platformName.isNotEmpty) {
+      name = scanResult.device.platformName;
     }
     return Card(
       child: Padding(
