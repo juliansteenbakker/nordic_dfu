@@ -1,6 +1,18 @@
 /// Android parameters for DFUServiceInitiator object.
 /// See https://github.com/NordicSemiconductor/Android-DFU-Library for more information.
 class AndroidSpecialParameter {
+  /// Constructor for AndroidSpecialParameter
+  const AndroidSpecialParameter({
+    this.disableNotification,
+    this.keepBond,
+    this.packetReceiptNotificationsEnabled,
+    this.restoreBond,
+    this.startAsForegroundService,
+    this.dataDelay = 400,
+    this.numberOfRetries = 10,
+    this.rebootTime,
+  });
+
   ///Sets whether the progress notification in the status bar should be disabled.
   ///Defaults to false.
   final bool? disableNotification;
@@ -74,17 +86,7 @@ class AndroidSpecialParameter {
   /// rebootTime the reboot time in milliseconds, default 0.
   final int? rebootTime;
 
-  const AndroidSpecialParameter({
-    this.disableNotification,
-    this.keepBond,
-    this.packetReceiptNotificationsEnabled,
-    this.restoreBond,
-    this.startAsForegroundService,
-    this.dataDelay = 400,
-    this.numberOfRetries = 10,
-    this.rebootTime,
-  });
-
+  /// Converts AndroidSpecialParameter into a json object.
   Map<String, dynamic> toJson() => {
         'disableNotification': disableNotification,
         'keepBond': keepBond,

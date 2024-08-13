@@ -26,7 +26,7 @@ typedef DfuErrorCallback = void Function(
 /// [speed] Speed of the dfu proces
 /// [avgSpeed] Average speed of the dfu process
 /// [currentPart] Current part being uploaded
-/// [partsTotal] All parts that need to be uploaded
+/// [totalParts] All parts that need to be uploaded
 typedef DfuProgressCallback = void Function(
   String address,
   int percent,
@@ -38,19 +38,18 @@ typedef DfuProgressCallback = void Function(
 
 /// This singleton handles the DFU process.
 class NordicDfu {
-  static final NordicDfu _singleton = NordicDfu._internal();
-
-  factory NordicDfu() {
-    return _singleton;
-  }
+  /// Factory for initiating the Singleton
+  factory NordicDfu() => _singleton;
 
   NordicDfu._internal();
+  static final NordicDfu _singleton = NordicDfu._internal();
 
-  static const String namespace = 'dev.steenbakker.nordic_dfu';
+  static const _namespace = 'dev.steenbakker.nordic_dfu';
   static const MethodChannel _methodChannel =
-      MethodChannel('$namespace/method');
-  static const EventChannel _eventChannel = EventChannel('$namespace/event');
-  StreamSubscription? events;
+      MethodChannel('$_namespace/method');
+  static const EventChannel _eventChannel = EventChannel('$_namespace/event');
+
+  StreamSubscription<void>? _events;
 
   /// Start the DFU Process.
   /// Required:
@@ -103,7 +102,7 @@ class NordicDfu {
     DfuErrorCallback? onError,
     DfuProgressCallback? onProgressChanged,
   }) async {
-    events = _eventChannel.receiveBroadcastStream().listen((data) {
+    _events = _eventChannel.receiveBroadcastStream().listen((data) {
       data as Map;
       for (final key in data.keys) {
         switch (key) {
@@ -121,11 +120,11 @@ class NordicDfu {
             break;
           case 'onDfuAborted':
             onDfuAborted?.call(data[key] as String);
-            events?.cancel();
+            _events?.cancel();
             break;
           case 'onDfuCompleted':
             onDfuCompleted?.call(data[key] as String);
-            events?.cancel();
+            _events?.cancel();
             break;
           case 'onDfuProcessStarted':
             onDfuProcessStarted?.call(data[key] as String);
@@ -140,19 +139,17 @@ class NordicDfu {
             onFirmwareValidating?.call(data[key] as String);
             break;
           case 'onError':
-            final Map<String, dynamic> result =
-                Map<String, dynamic>.from(data[key] as Map);
+            final result = Map<String, dynamic>.from(data[key] as Map);
             onError?.call(
               result['deviceAddress'] as String,
               result['error'] as int,
               result['errorType'] as int,
               result['message'] as String,
             );
-            events?.cancel();
+            _events?.cancel();
             break;
           case 'onProgressChanged':
-            final Map<String, dynamic> result =
-                Map<String, dynamic>.from(data[key] as Map);
+            final result = Map<String, dynamic>.from(data[key] as Map);
             onProgressChanged?.call(
               result['deviceAddress'] as String,
               result['percent'] as int,
@@ -180,6 +177,7 @@ class NordicDfu {
     });
   }
 
+  /// Abort DFU while in progress.
   Future<String?> abortDfu() async {
     return _methodChannel.invokeMethod('abortDfu');
   }

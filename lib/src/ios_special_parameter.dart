@@ -1,6 +1,17 @@
 /// iOS parameters for DFUServiceInitiator object.
 /// See https://github.com/NordicSemiconductor/IOS-Pods-DFU-Library for more information.
 class IosSpecialParameter {
+  /// Constructor for IosSpecialParameter
+  const IosSpecialParameter({
+    this.alternativeAdvertisingNameEnabled,
+    this.forceScanningForNewAddressInLegacyDfu,
+    this.connectionTimeout,
+    this.dataObjectPreparationDelay,
+    this.alternativeAdvertisingName,
+    this.disableResume,
+    this.packetReceiptNotificationParameter,
+  });
+
   /// By default, the Legacy DFU bootloader starting from SDK 7.1, when enabled using
   /// buttonless service, advertises with the same Bluetooth address as the application
   /// using direct advertisement. This complies with the Bluetooth specification.
@@ -57,7 +68,7 @@ class IosSpecialParameter {
   /// http://infocenter.nordicsemi.com/topic/com.nordic.infocenter.sdk5.v14.0.0/service_dfu.html
   ///
   /// Setting this flag to false you will disable this feature. iOS DFU Library will
-  /// not send the 0x02-[len]-[new name] command prior jumping and will rely on the DfuPeripheralSelectorDelegate just like it used to in previous SDK.
+  /// not send the 0x02-len-new name command prior jumping and will rely on the DfuPeripheralSelectorDelegate just like it used to in previous SDK.
   ///
   /// This flag is ignored in Legacy DFU.
   ///
@@ -82,16 +93,7 @@ class IosSpecialParameter {
   /// notification will be disabled by the DFU target. Default value is 12.
   final int? packetReceiptNotificationParameter;
 
-  const IosSpecialParameter({
-    this.alternativeAdvertisingNameEnabled,
-    this.forceScanningForNewAddressInLegacyDfu,
-    this.connectionTimeout,
-    this.dataObjectPreparationDelay,
-    this.alternativeAdvertisingName,
-    this.disableResume,
-    this.packetReceiptNotificationParameter,
-  });
-
+  /// Converts IosSpecialParameter into a json object.
   Map<String, dynamic> toJson() => {
         'alternativeAdvertisingNameEnabled': alternativeAdvertisingNameEnabled,
         'forceScanningForNewAddressInLegacyDfu':
