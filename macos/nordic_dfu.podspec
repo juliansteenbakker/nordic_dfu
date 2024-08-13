@@ -18,7 +18,7 @@ A new Flutter plugin project.
   s.public_header_files = 'Classes/**/*.h'
   s.swift_version = '5.4'
   s.dependency 'FlutterMacOS'
-  s.dependency 'iOSDFULibrary', '~> 4.13.0'
+  s.dependency 'iOSDFULibrary', '~> 4.15.3'
 
   s.platform = :osx, '10.14'
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES' }
