@@ -161,6 +161,10 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHan
 
         if (address == null) {
             // Abort all DFU processes
+            if (activeDfuMap.isEmpty()) {
+                result.error("NO_ACTIVE_DFU", "No active DFU processes to abort", null)
+                return
+            }
             activeDfuMap.values.forEach { it.controller.abort() }
             result.success(null)
             return

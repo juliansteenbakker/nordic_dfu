@@ -54,6 +54,10 @@ public class SwiftNordicDfuPlugin: NSObject, FlutterPlugin, FlutterStreamHandler
 
         if address == nil {
             // Abort all DFU processes
+            if activeDfuMap.isEmpty {
+                result(FlutterError(code: "NO_ACTIVE_DFU", message: "No active DFU processes to abort", details: nil))
+                return
+            }
             for (_, process) in activeDfuMap {
                 process.controller?.abort()
             }
