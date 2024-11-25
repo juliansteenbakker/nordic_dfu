@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:nordic_dfu/src/android_special_paramter.dart';
 import 'package:nordic_dfu/src/ios_special_parameter.dart';
@@ -36,6 +38,36 @@ typedef DfuProgressCallback = void Function(
   int totalParts,
 );
 
+class DfuEventHandler {
+  DfuCallback? onDeviceConnected;
+  DfuCallback? onDeviceConnecting;
+  DfuCallback? onDeviceDisconnected;
+  DfuCallback? onDeviceDisconnecting;
+  DfuCallback? onDfuAborted;
+  DfuCallback? onDfuCompleted;
+  DfuCallback? onDfuProcessStarted;
+  DfuCallback? onDfuProcessStarting;
+  DfuCallback? onEnablingDfuMode;
+  DfuCallback? onFirmwareValidating;
+  DfuErrorCallback? onError;
+  DfuProgressCallback? onProgressChanged;
+
+  DfuEventHandler({
+    required this.onDeviceConnected,
+    required this.onDeviceConnecting,
+    required this.onDeviceDisconnected,
+    required this.onDeviceDisconnecting,
+    required this.onDfuAborted,
+    required this.onDfuCompleted,
+    required this.onDfuProcessStarted,
+    required this.onDfuProcessStarting,
+    required this.onEnablingDfuMode,
+    required this.onFirmwareValidating,
+    required this.onError,
+    required this.onProgressChanged,
+  });
+}
+
 /// This singleton handles the DFU process.
 class NordicDfu {
   /// Factory for initiating the Singleton
@@ -50,6 +82,84 @@ class NordicDfu {
   static const EventChannel _eventChannel = EventChannel('$_namespace/event');
 
   StreamSubscription<void>? _events;
+  Map<String, DfuEventHandler> _eventHandlerMap = {};
+
+  void _ensureEventStreamSetup() {
+    if (_events != null) return; // already setup
+
+    _events = _eventChannel.receiveBroadcastStream().listen((data) {
+      data as Map;
+      for (final key in data.keys) {
+        switch (key) {
+          case 'onDeviceConnected':
+            final address = data[key] as String;
+            _eventHandlerMap[address]?.onDeviceConnected?.call(address);
+            break;
+          case 'onDeviceConnecting':
+            final address = data[key] as String;
+            _eventHandlerMap[address]?.onDeviceConnecting?.call(address);
+            break;
+          case 'onDeviceDisconnected':
+            final address = data[key] as String;
+            _eventHandlerMap[address]?.onDeviceDisconnected?.call(address);
+            break;
+          case 'onDeviceDisconnecting':
+            final address = data[key] as String;
+            _eventHandlerMap[address]?.onDeviceDisconnecting?.call(address);
+            break;
+          case 'onDfuAborted':
+            final address = data[key] as String;
+            _eventHandlerMap[address]?.onDfuAborted?.call(address);
+            _eventHandlerMap.remove(address);
+            break;
+          case 'onDfuCompleted':
+            final address = data[key] as String;
+            _eventHandlerMap[address]?.onDfuCompleted?.call(address);
+            _eventHandlerMap.remove(address);
+            break;
+          case 'onDfuProcessStarted':
+            final address = data[key] as String;
+            _eventHandlerMap[address]?.onDfuProcessStarted?.call(address);
+            break;
+          case 'onDfuProcessStarting':
+            final address = data[key] as String;
+            _eventHandlerMap[address]?.onDfuProcessStarting?.call(address);
+            break;
+          case 'onEnablingDfuMode':
+            final address = data[key] as String;
+            _eventHandlerMap[address]?.onEnablingDfuMode?.call(address);
+            break;
+          case 'onFirmwareValidating':
+            final address = data[key] as String;
+            _eventHandlerMap[address]?.onFirmwareValidating?.call(data[key] as String);
+            break;
+          case 'onError':
+            final result = Map<String, dynamic>.from(data[key] as Map);
+            final address = result['deviceAddress'] as String;
+            _eventHandlerMap[address]?.onError?.call(
+              address,
+              result['error'] as int,
+              result['errorType'] as int,
+              result['message'] as String,
+            );
+            _eventHandlerMap.remove(address);
+            break;
+          case 'onProgressChanged':
+            final result = Map<String, dynamic>.from(data[key] as Map);
+            final address = result['deviceAddress'] as String;
+            _eventHandlerMap[address]?.onProgressChanged?.call(
+              address,
+              result['percent'] as int,
+              result['speed'] as double,
+              result['avgSpeed'] as double,
+              result['currentPart'] as int,
+              result['partsTotal'] as int,
+            );
+            break;
+        }
+      }
+    });
+  }
 
   /// Start the DFU Process.
   /// Required:
@@ -102,66 +212,22 @@ class NordicDfu {
     DfuErrorCallback? onError,
     DfuProgressCallback? onProgressChanged,
   }) async {
-    _events = _eventChannel.receiveBroadcastStream().listen((data) {
-      data as Map;
-      for (final key in data.keys) {
-        switch (key) {
-          case 'onDeviceConnected':
-            onDeviceConnected?.call(data[key] as String);
-            break;
-          case 'onDeviceConnecting':
-            onDeviceConnecting?.call(data[key] as String);
-            break;
-          case 'onDeviceDisconnected':
-            onDeviceDisconnected?.call(data[key] as String);
-            break;
-          case 'onDeviceDisconnecting':
-            onDeviceDisconnecting?.call(data[key] as String);
-            break;
-          case 'onDfuAborted':
-            onDfuAborted?.call(data[key] as String);
-            _events?.cancel();
-            break;
-          case 'onDfuCompleted':
-            onDfuCompleted?.call(data[key] as String);
-            _events?.cancel();
-            break;
-          case 'onDfuProcessStarted':
-            onDfuProcessStarted?.call(data[key] as String);
-            break;
-          case 'onDfuProcessStarting':
-            onDfuProcessStarting?.call(data[key] as String);
-            break;
-          case 'onEnablingDfuMode':
-            onEnablingDfuMode?.call(data[key] as String);
-            break;
-          case 'onFirmwareValidating':
-            onFirmwareValidating?.call(data[key] as String);
-            break;
-          case 'onError':
-            final result = Map<String, dynamic>.from(data[key] as Map);
-            onError?.call(
-              result['deviceAddress'] as String,
-              result['error'] as int,
-              result['errorType'] as int,
-              result['message'] as String,
-            );
-            _events?.cancel();
-            break;
-          case 'onProgressChanged':
-            final result = Map<String, dynamic>.from(data[key] as Map);
-            onProgressChanged?.call(
-              result['deviceAddress'] as String,
-              result['percent'] as int,
-              result['speed'] as double,
-              result['avgSpeed'] as double,
-              result['currentPart'] as int,
-              result['partsTotal'] as int,
-            );
-            break;
-        }
-      }
-    });
+    _eventHandlerMap[address] = DfuEventHandler(
+      onDeviceConnected: onDeviceConnected,
+      onDeviceConnecting: onDeviceConnecting,
+      onDeviceDisconnected: onDeviceDisconnected,
+      onDeviceDisconnecting: onDeviceDisconnecting,
+      onDfuAborted: onDfuAborted,
+      onDfuCompleted: onDfuCompleted,
+      onDfuProcessStarted: onDfuProcessStarted,
+      onDfuProcessStarting: onDfuProcessStarting,
+      onEnablingDfuMode: onEnablingDfuMode,
+      onFirmwareValidating: onFirmwareValidating,
+      onError: onError,
+      onProgressChanged: onProgressChanged,
+    );
+
+    _ensureEventStreamSetup();
 
     return _methodChannel.invokeMethod('startDfu', <String, dynamic>{
       'address': address,
@@ -171,14 +237,30 @@ class NordicDfu {
       'forceDfu': forceDfu,
       'numberOfPackets': numberOfPackets,
       'enableUnsafeExperimentalButtonlessServiceInSecureDfu':
-          enableUnsafeExperimentalButtonlessServiceInSecureDfu,
+      enableUnsafeExperimentalButtonlessServiceInSecureDfu,
       ...androidSpecialParameter.toJson(),
       ...iosSpecialParameter.toJson(),
     });
   }
 
   /// Abort DFU while in progress.
-  Future<String?> abortDfu() async {
-    return _methodChannel.invokeMethod('abortDfu');
+  /// 
+  /// Optional:
+  /// [address] specifies the device to abort. If no [address] is provided, 
+  /// all running DFU processes will be aborted.
+  /// 
+  /// On Android, due to current limitations of the underlying Android-DFU-Library, 
+  /// the abort command is not device-specific and will abort all active DFU processes, 
+  /// even if a specific [address] is provided.
+  Future<String?> abortDfu({
+    String? address
+  }) async {
+    if (kDebugMode && address != null && Platform.isAndroid) {
+      print("[NordicDfu:abortDfu] Warning: abortDfu will abort all DFU processes on Android");
+    }
+
+    return _methodChannel.invokeMethod('abortDfu',
+      address != null ? <String, dynamic>{ 'address': address } : {}
+    );
   }
 }
