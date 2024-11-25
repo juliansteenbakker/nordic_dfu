@@ -27,5 +27,28 @@
         <service android:name=".DfuService"
             android:foregroundServiceType="connectedDevice"
             android:exported="false"/>
+        <service android:name=".DfuService2"
+            android:foregroundServiceType="connectedDevice"
+            android:exported="false"/>
+        <service android:name=".DfuService3"
+            android:foregroundServiceType="connectedDevice"
+            android:exported="false"/>
+        <service android:name=".DfuService4"
+            android:foregroundServiceType="connectedDevice"
+            android:exported="false"/>
+        <service android:name=".DfuService5"
+            android:foregroundServiceType="connectedDevice"
+            android:exported="false"/>
+        <service android:name=".DfuService6"
+            android:foregroundServiceType="connectedDevice"
+            android:exported="false"/>
+        <service android:name=".DfuService7"
+            android:foregroundServiceType="connectedDevice"
+            android:exported="false"/>
+        <service android:name=".DfuService8"
+            android:foregroundServiceType="connectedDevice"
+            android:exported="false"/>
+        <!-- more service classes can be added here to support more parallel DFU processes.
+             make sure to also update DFU_SERVICE_CLASSES in NordicDfuPlugin.kt -->
     </application>
 </manifest>
