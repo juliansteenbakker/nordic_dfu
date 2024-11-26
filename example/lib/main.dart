@@ -127,6 +127,11 @@ class _MyAppState extends State<MyApp> {
         appBar: AppBar(
           title: const Text('Plugin example app'),
           actions: <Widget>[
+            if (anyDfuRunning)
+              TextButton(
+                onPressed: NordicDfu().abortDfu,
+                child: const Text('Abort Dfu'),
+              ),
             if (isScanning)
               IconButton(
                 icon: const Icon(Icons.pause_circle_filled),
