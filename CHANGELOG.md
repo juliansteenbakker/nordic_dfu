@@ -1,3 +1,6 @@
+## 6.2.1
+* [Android] Updated Nordic DFU Library to version 2.7.0
+
 ## 6.2.0
 * [Android] Updated Nordic DFU Library to version 2.5.0
 * [iOS & macOS] Updated Nordic DFU Library to version 4.15.3
