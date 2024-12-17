@@ -10,6 +10,16 @@ import 'package:permission_handler/permission_handler.dart';
 
 void main() => runApp(const MyApp());
 
+class ExampleDfuState {
+  bool dfuRunning = false;
+  int? progressPercent;
+
+  ExampleDfuState({
+    required this.dfuRunning,
+    this.progressPercent,
+  });
+}
+
 class MyApp extends StatefulWidget {
   const MyApp({Key? key}) : super(key: key);
 
@@ -20,12 +30,14 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   StreamSubscription<ScanResult>? scanSubscription;
   List<ScanResult> scanResults = <ScanResult>[];
-  bool dfuRunning = false;
-  int? dfuRunningInx;
+  Map<String, ExampleDfuState> dfuStateMap = {};
+  bool get anyDfuRunning => dfuStateMap.values.any((state)=>state.dfuRunning);
 
   Future<void> doDfu(String deviceId) async {
     stopScan();
-    dfuRunning = true;
+    setState((){
+      dfuStateMap[deviceId] = ExampleDfuState(dfuRunning: true);
+    });
 
     final result = await FilePicker.platform.pickFiles();
 
@@ -49,13 +61,20 @@ class _MyAppState extends State<MyApp> {
           partsTotal,
         ) {
           debugPrint('deviceAddress: $deviceAddress, percent: $percent');
+          setState((){
+            dfuStateMap[deviceId]?.progressPercent = percent;
+          });
         },
         // androidSpecialParameter: const AndroidSpecialParameter(rebootTime: 1000),
       );
       debugPrint(s);
-      dfuRunning = false;
+      setState((){
+        dfuStateMap[deviceId]?.dfuRunning = false;
+      });
     } catch (e) {
-      dfuRunning = false;
+      setState((){
+        dfuStateMap[deviceId]?.dfuRunning = false;
+      });
       debugPrint(e.toString());
     }
   }
@@ -108,15 +127,20 @@ class _MyAppState extends State<MyApp> {
         appBar: AppBar(
           title: const Text('Plugin example app'),
           actions: <Widget>[
+            if (anyDfuRunning)
+              TextButton(
+                onPressed: NordicDfu().abortDfu,
+                child: const Text('Abort Dfu'),
+              ),
             if (isScanning)
               IconButton(
                 icon: const Icon(Icons.pause_circle_filled),
-                onPressed: dfuRunning ? null : stopScan,
+                onPressed: anyDfuRunning ? null : stopScan,
               )
             else
               IconButton(
                 icon: const Icon(Icons.play_arrow),
-                onPressed: dfuRunning ? null : startScan,
+                onPressed: anyDfuRunning ? null : startScan,
               ),
           ],
         ),
@@ -136,25 +160,13 @@ class _MyAppState extends State<MyApp> {
 
   Widget _deviceItemBuilder(BuildContext context, int index) {
     final result = scanResults[index];
+    final deviceId = result.device.remoteId.str;
     return DeviceItem(
-      isRunningItem: dfuRunningInx == index,
+      dfuState: dfuStateMap[deviceId],
       scanResult: result,
-      onPress: dfuRunning
-          ? () async {
-              await NordicDfu().abortDfu();
-              setState(() {
-                dfuRunningInx = null;
-              });
-            }
-          : () async {
-              setState(() {
-                dfuRunningInx = index;
-              });
-              await doDfu(result.device.remoteId.str);
-              setState(() {
-                dfuRunningInx = null;
-              });
-            },
+      onPress: dfuStateMap[deviceId]?.dfuRunning ?? false
+        ? () => NordicDfu().abortDfu(address: deviceId)
+        : () => doDfu(deviceId)
     );
   }
 }
@@ -186,14 +198,21 @@ class DeviceItem extends StatelessWidget {
 
   final VoidCallback? onPress;
 
-  final bool? isRunningItem;
+  final ExampleDfuState? dfuState;
 
   const DeviceItem({
     required this.scanResult,
     this.onPress,
-    this.isRunningItem,
+    this.dfuState,
     Key? key,
   }) : super(key: key);
+
+  String _getDfuButtonText() {
+    final progressText = dfuState?.progressPercent != null
+      ? '\n(${dfuState!.progressPercent}%)'
+      : '';
+    return (dfuState?.dfuRunning == true ? 'Abort Dfu' : 'Start Dfu') + progressText;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -219,9 +238,10 @@ class DeviceItem extends StatelessWidget {
             ),
             TextButton(
               onPressed: onPress,
-              child: isRunningItem!
-                  ? const Text('Abort Dfu')
-                  : const Text('Start Dfu'),
+              child: Text(
+                _getDfuButtonText(),
+                textAlign: TextAlign.center,
+              )
             ),
           ],
         ),

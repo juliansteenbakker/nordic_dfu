@@ -12,23 +12,44 @@ import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
+import no.nordicsemi.android.dfu.DfuBaseService
 import no.nordicsemi.android.dfu.DfuBaseService.NOTIFICATION_ID
 import no.nordicsemi.android.dfu.DfuProgressListenerAdapter
 import no.nordicsemi.android.dfu.DfuServiceController
 import no.nordicsemi.android.dfu.DfuServiceInitiator
 import no.nordicsemi.android.dfu.DfuServiceListenerHelper
 import java.util.*
+import android.util.Log
+
+private class DfuProcess(
+    val deviceAddress: String,
+    val controller: DfuServiceController,
+    val pendingResult: MethodChannel.Result,
+    val serviceClass: Class<out DfuBaseService>
+)
+
+private val DFU_SERVICE_CLASSES = arrayListOf<Class<out DfuBaseService>>(
+    DfuService::class.java,
+    DfuService2::class.java,
+    DfuService3::class.java,
+    DfuService4::class.java,
+    DfuService5::class.java,
+    DfuService6::class.java,
+    DfuService7::class.java,
+    DfuService8::class.java,
+    // more service classes can be added here to support more parallel DFU processes
+    // (make sure to also update AndroidManifest.xml)
+)
 
 class NordicDfuPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHandler {
 
     private var mContext: Context? = null
 
-    private var pendingResult: MethodChannel.Result? = null
     private var methodChannel: MethodChannel? = null
     private var eventChannel: EventChannel? = null
     private var sink: EventChannel.EventSink? = null
+    private var activeDfuMap: MutableMap<String, DfuProcess> = mutableMapOf() 
 
-    private var controller: DfuServiceController? = null
     private var hasCreateNotification = false
 
     override fun onAttachedToEngine(binding: FlutterPluginBinding) {
@@ -50,7 +71,7 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHan
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
             "startDfu" -> initiateDfu(call, result)
-            "abortDfu" -> abortDfu()
+            "abortDfu" -> abortDfu(call, result)
             else -> result.notImplemented()
         }
     }
@@ -107,7 +128,6 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHan
             // now, the path is an absolute path, and can pass it to nordic dfu libarary
             filePath = tempFileName
         }
-        pendingResult = result
         startDfu(
             address,
             name,
@@ -127,10 +147,43 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHan
         )
     }
 
-    private fun abortDfu() {
-        if (controller != null) {
-            controller!!.abort()
+    // Aborts ongoing DFU processes.
+    //
+    // If `call.argument("address")` is null, the abort command will be sent to all active DFU controllers
+    // If `call.argument("address")` is provided, the abort command will be sent to the specific DFU controller
+    // 
+    // Note: the underlying controller implementation does not currently support individual aborts;
+    // all active DFU processes are affected. See: https://github.com/NordicSemiconductor/Android-DFU-Library/blob/0c559244b34ebd27a4f51f045c067b965f918b73/lib/dfu/src/main/java/no/nordicsemi/android/dfu/DfuServiceController.java#L31-L39
+    // 
+    // Per-address abort handling is included here for cross-platform consistency and future compatability.
+    private fun abortDfu(call: MethodCall, result: MethodChannel.Result) {
+        val address = call.argument<String>("address")
+
+        if (address == null) {
+            // Abort all DFU processes
+            if (activeDfuMap.isEmpty()) {
+                result.error("NO_ACTIVE_DFU", "No active DFU processes to abort", null)
+                return
+            }
+            activeDfuMap.values.forEach { it.controller.abort() }
+            result.success(null)
+            return
         }
+
+        // Abort DFU process for the specified address
+        val process = activeDfuMap[address]
+        if (process == null) {
+            result.error("INVALID_ADDRESS", "No DFU process found for address: $address", null)
+            return
+        }
+
+        // Log a warning if multiple DFU processes are active
+        if (activeDfuMap.size > 1) {
+            Log.w("[NordicDfu]", "abortDfu will abort all DFU processes")
+        }
+
+        process.controller.abort()
+        result.success(null)
     }
 
     private fun startDfu(
@@ -180,7 +233,6 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHan
         if (rebootTime != null) {
             starter.setRebootTime(rebootTime)
         }
-        pendingResult = result
 
         // fix notification on android 8 and above
         if (startAsForegroundService == null || startAsForegroundService) {
@@ -189,7 +241,25 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHan
                 hasCreateNotification = true
             }
         }
-        controller = starter.start(mContext!!, DfuService::class.java)
+
+        val serviceClass = getAvailableDfuServiceClass() ?: run {
+            result.error("PARALLEL_LIMIT_REACHED", "No available DFU service slots", null)
+            return
+        }
+        val controller = starter.start(mContext!!, serviceClass)
+
+        activeDfuMap[address] = DfuProcess(
+            deviceAddress = address,
+            controller = controller,
+            pendingResult = result,
+            serviceClass = serviceClass
+        )
+    }
+
+    private fun getAvailableDfuServiceClass(): Class<out DfuBaseService>? {
+        return DFU_SERVICE_CLASSES.firstOrNull { serviceClass ->
+            activeDfuMap.values.none { it.serviceClass == serviceClass }
+        }
     }
 
     private fun cancelNotification() {
@@ -219,14 +289,12 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHan
                 parameters["errorType"] = errorType
                 parameters["message"] = message
                 sink?.success(mapOf("onError" to parameters))
-                if (pendingResult != null) {
-                    pendingResult!!.error(
-                        "$error",
-                        "DFU FAILED: $message",
-                        "Address: $deviceAddress, Error Type: $errorType"
-                    )
-                    pendingResult = null
-                }
+                activeDfuMap[deviceAddress]?.pendingResult?.error(
+                    "$error",
+                    "DFU FAILED: $message",
+                    "Address: $deviceAddress, Error Type: $errorType"
+                )
+                activeDfuMap.remove(deviceAddress)
             }
 
             override fun onDeviceConnecting(deviceAddress: String) {
@@ -248,18 +316,18 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHan
                 super.onDfuAborted(deviceAddress)
                 cancelNotification()
                 sink?.success(mapOf("onDfuAborted" to deviceAddress))
-                pendingResult?.error(
+                activeDfuMap[deviceAddress]?.pendingResult?.error(
                     "DFU_ABORTED", "DFU ABORTED by user", "device address: $deviceAddress"
                 )
-                pendingResult = null
+                activeDfuMap.remove(deviceAddress)
             }
 
             override fun onDfuCompleted(deviceAddress: String) {
                 super.onDfuCompleted(deviceAddress)
                 cancelNotification()
                 sink?.success(mapOf("onDfuCompleted" to deviceAddress))
-                pendingResult?.success(deviceAddress)
-                pendingResult = null
+                activeDfuMap[deviceAddress]?.pendingResult?.success(deviceAddress)
+                activeDfuMap.remove(deviceAddress)
             }
 
             override fun onDfuProcessStarted(deviceAddress: String) {
