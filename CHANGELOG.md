@@ -1,11 +1,14 @@
 ## 7.0.0
+New Features:
+* Added parallel DFU support (thanks @Flasher-MS !)
+* iOS and macOS implementation have been merged in one Darwin implementation, and now share the same functionality.
+
+Other Changes:
 * All callbacks in startDfu() have been moved to DfuEventHandler class.
 * AndroidSpecialOption() and IosSpecialOption() have been deprecated in favor of AndroidOptions() and DarwinOptions().
-* 
-* iOS and macOS implementation have been merged in one Darwin class.
-* Added parallel DFU support (thanks @Flasher-MS !)
 * [Android] Updated Nordic DFU Library to version 2.8.0
 * [Darwin] Updated Nordic DFU Library to version 4.16.0
+* [Android] Updated compileSdk to 35.
 
 ## 6.2.0
 * [Android] Updated Nordic DFU Library to version 2.5.0
