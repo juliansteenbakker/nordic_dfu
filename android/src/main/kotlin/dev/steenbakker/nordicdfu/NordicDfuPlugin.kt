@@ -28,7 +28,7 @@ private class DfuProcess(
     val serviceClass: Class<out DfuBaseService>
 )
 
-private val DFU_SERVICE_CLASSES = arrayListOf<Class<out DfuBaseService>>(
+private val DFU_SERVICE_CLASSES = arrayListOf(
     DfuService::class.java,
     DfuService2::class.java,
     DfuService3::class.java,
@@ -77,10 +77,6 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHan
     }
 
     override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
-        if (mContext != null) {
-            DfuServiceListenerHelper.registerProgressListener(mContext!!, mDfuProgressListener)
-        }
-
         this.sink = events
     }
 
@@ -232,6 +228,10 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHan
 
         if (rebootTime != null) {
             starter.setRebootTime(rebootTime)
+        }
+
+        if (mContext != null) {
+            DfuServiceListenerHelper.registerProgressListener(mContext!!, mDfuProgressListener, address)
         }
 
         // fix notification on android 8 and above

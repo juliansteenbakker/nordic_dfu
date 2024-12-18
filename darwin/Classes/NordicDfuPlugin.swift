@@ -1,21 +1,33 @@
-import Flutter
-import UIKit
 import NordicDFU
 import CoreBluetooth
 
-public class SwiftNordicDfuPlugin: NSObject, FlutterPlugin, FlutterStreamHandler, LoggerDelegate {
+#if os(iOS)
+  import Flutter
+  import UIKit
+#else
+  import AppKit
+  import FlutterMacOS
+#endif
+
+public class NordicDfuPlugin: NSObject, FlutterPlugin, FlutterStreamHandler, LoggerDelegate {
     
     let registrar: FlutterPluginRegistrar
     private var sink: FlutterEventSink?
     private var activeDfuMap: [String: DfuProcess] = [:]
 
     public static func register(with registrar: FlutterPluginRegistrar) {
-        let instance = SwiftNordicDfuPlugin(registrar)
+        let instance = NordicDfuPlugin(registrar)
         
-        let method = FlutterMethodChannel(name: "dev.steenbakker.nordic_dfu/method", binaryMessenger: registrar.messenger())
+        #if os(iOS)
+        let messenger = registrar.messenger()
+        #else
+        let messenger = registrar.messenger
+        #endif
+        
+        let method = FlutterMethodChannel(name: "dev.steenbakker.nordic_dfu/method", binaryMessenger: messenger)
         
         let event = FlutterEventChannel(name:
-                                            "dev.steenbakker.nordic_dfu/event", binaryMessenger: registrar.messenger())
+                                            "dev.steenbakker.nordic_dfu/event", binaryMessenger: messenger)
 
         registrar.addMethodCallDelegate(instance, channel: method)
         event.setStreamHandler(instance)
@@ -45,33 +57,28 @@ public class SwiftNordicDfuPlugin: NSObject, FlutterPlugin, FlutterStreamHandler
     }
     
     // Aborts ongoing DFU process(es)
-    //
-    // If `call.arguments["address"]` is `nil`, the method aborts all active DFU processes
-    // If `call.arguments["address"]` contains a specific address, the method aborts the DFU process for that address
+    // If `call.arguments["address"]` is nil, aborts all active DFU processes.
+    // If `call.arguments["address"]` contains an address, aborts the DFU process for that address.
     private func abortDfu(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
-        let arguments = call.arguments as? [String: Any]
-        let address = arguments?["address"] as? String
-
-        if address == nil {
+        guard let arguments = call.arguments as? [String: Any],
+              let address = arguments["address"] as? String else {
             // Abort all DFU processes
             if activeDfuMap.isEmpty {
                 result(FlutterError(code: "NO_ACTIVE_DFU", message: "No active DFU processes to abort", details: nil))
-                return
+            } else {
+                activeDfuMap.values.forEach { _ = $0.controller?.abort() } // Explicitly ignore result of `abort()`
+                result(nil)
             }
-            for (_, process) in activeDfuMap {
-                process.controller?.abort()
-            }
-            result(nil)
             return
         }
 
         // Abort DFU process for the specified address
-        guard let process = activeDfuMap[address!] else {
-            result(FlutterError(code: "INVALID_ADDRESS", message: "No DFU process found for address: \(address!).", details: nil))
+        guard let process = activeDfuMap[address] else {
+            result(FlutterError(code: "INVALID_ADDRESS", message: "No DFU process found for address: \(address).", details: nil))
             return
         }
 
-        process.controller?.abort()
+        _ = process.controller?.abort() // Explicitly ignore result of `abort()`
         result(nil)
     }
  
@@ -229,7 +236,7 @@ private class DfuProcess {
         deviceAddress: String,
         firmware: DFUFirmware,
         uuid: UUID,
-        delegate: SwiftNordicDfuPlugin,
+        delegate: NordicDfuPlugin,
         result: @escaping FlutterResult,
         options: DfuOptions
     ) {
@@ -254,10 +261,10 @@ private class DfuProcess {
 
 // Handles DFU service and progress updates for a specific device
 public class DeviceScopedDFUDelegate: NSObject, DFUServiceDelegate, DFUProgressDelegate {
-    private let originalDelegate: SwiftNordicDfuPlugin
+    private let originalDelegate: NordicDfuPlugin
     private let deviceAddress: String
 
-    init(delegate: SwiftNordicDfuPlugin, deviceAddress: String) {
+    init(delegate: NordicDfuPlugin, deviceAddress: String) {
         self.originalDelegate = delegate
         self.deviceAddress = deviceAddress
     }

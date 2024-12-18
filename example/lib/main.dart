@@ -11,31 +11,30 @@ import 'package:permission_handler/permission_handler.dart';
 void main() => runApp(const MyApp());
 
 class ExampleDfuState {
-  bool dfuRunning = false;
-  int? progressPercent;
-
   ExampleDfuState({
     required this.dfuRunning,
     this.progressPercent,
   });
+  bool dfuRunning = false;
+  int? progressPercent;
 }
 
 class MyApp extends StatefulWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
-  _MyAppState createState() => _MyAppState();
+  MyAppState createState() => MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class MyAppState extends State<MyApp> {
   StreamSubscription<ScanResult>? scanSubscription;
   List<ScanResult> scanResults = <ScanResult>[];
   Map<String, ExampleDfuState> dfuStateMap = {};
-  bool get anyDfuRunning => dfuStateMap.values.any((state)=>state.dfuRunning);
+  bool get anyDfuRunning => dfuStateMap.values.any((state) => state.dfuRunning);
 
   Future<void> doDfu(String deviceId) async {
     stopScan();
-    setState((){
+    setState(() {
       dfuStateMap[deviceId] = ExampleDfuState(dfuRunning: true);
     });
 
@@ -43,13 +42,11 @@ class _MyAppState extends State<MyApp> {
 
     if (result == null) return;
     try {
-      final s = await NordicDfu().startDfu(
-        deviceId,
-        result.files.single.path ?? '',
+      final eventHandler = DfuEventHandler(
         onDeviceDisconnecting: (string) {
           debugPrint('deviceAddress: $string');
         },
-        // onErrorHandle: (string) {
+        // onError: (string) {
         //   debugPrint('deviceAddress: $string');
         // },
         onProgressChanged: (
@@ -61,18 +58,25 @@ class _MyAppState extends State<MyApp> {
           partsTotal,
         ) {
           debugPrint('deviceAddress: $deviceAddress, percent: $percent');
-          setState((){
+          setState(() {
             dfuStateMap[deviceId]?.progressPercent = percent;
           });
         },
-        // androidSpecialParameter: const AndroidSpecialParameter(rebootTime: 1000),
+      );
+
+      final s = await NordicDfu().startDfu(
+        deviceId,
+        result.files.single.path ?? '',
+        dfuEventHandler: eventHandler,
+        androidParameters: const AndroidParameters(rebootTime: 1000),
+        // darwinParameters: const DarwinParameters(),
       );
       debugPrint(s);
-      setState((){
+      setState(() {
         dfuStateMap[deviceId]?.dfuRunning = false;
       });
     } catch (e) {
-      setState((){
+      setState(() {
         dfuStateMap[deviceId]?.dfuRunning = false;
       });
       debugPrint(e.toString());
@@ -91,8 +95,8 @@ class _MyAppState extends State<MyApp> {
       ].request();
     }
 
-    scanSubscription?.cancel();
-    FlutterBluePlus.startScan();
+    await scanSubscription?.cancel();
+    await FlutterBluePlus.startScan();
     scanResults.clear();
     scanSubscription = FlutterBluePlus.scanResults.expand((e) => e).listen(
       (scanResult) {
@@ -125,7 +129,7 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Plugin example app'),
+          title: const Text('Nordic DFU Example App'),
           actions: <Widget>[
             if (anyDfuRunning)
               TextButton(
@@ -165,8 +169,8 @@ class _MyAppState extends State<MyApp> {
       dfuState: dfuStateMap[deviceId],
       scanResult: result,
       onPress: dfuStateMap[deviceId]?.dfuRunning ?? false
-        ? () => NordicDfu().abortDfu(address: deviceId)
-        : () => doDfu(deviceId)
+          ? () => NordicDfu().abortDfu(address: deviceId)
+          : () => doDfu(deviceId),
     );
   }
 }
@@ -194,24 +198,24 @@ class _MyAppState extends State<MyApp> {
 // }
 
 class DeviceItem extends StatelessWidget {
+  const DeviceItem({
+    required this.scanResult,
+    this.onPress,
+    this.dfuState,
+    super.key,
+  });
   final ScanResult scanResult;
 
   final VoidCallback? onPress;
 
   final ExampleDfuState? dfuState;
 
-  const DeviceItem({
-    required this.scanResult,
-    this.onPress,
-    this.dfuState,
-    Key? key,
-  }) : super(key: key);
-
   String _getDfuButtonText() {
     final progressText = dfuState?.progressPercent != null
-      ? '\n(${dfuState!.progressPercent}%)'
-      : '';
-    return (dfuState?.dfuRunning == true ? 'Abort Dfu' : 'Start Dfu') + progressText;
+        ? '\n(${dfuState!.progressPercent}%)'
+        : '';
+    return ((dfuState?.dfuRunning ?? false) ? 'Abort Dfu' : 'Start Dfu') +
+        progressText;
   }
 
   @override
@@ -222,7 +226,7 @@ class DeviceItem extends StatelessWidget {
     }
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(8),
         child: Row(
           children: <Widget>[
             const Icon(Icons.bluetooth),
@@ -241,7 +245,7 @@ class DeviceItem extends StatelessWidget {
               child: Text(
                 _getDfuButtonText(),
                 textAlign: TextAlign.center,
-              )
+              ),
             ),
           ],
         ),
