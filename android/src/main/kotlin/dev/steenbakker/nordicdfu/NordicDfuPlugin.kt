@@ -114,7 +114,7 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHan
             val loader = FlutterInjector.instance().flutterLoader()
             filePath = loader.getLookupKeyForAsset(filePath)
             val tempFileName =
-                (PathUtils.getExternalAppCachePath(mContext!!) + UUID.randomUUID().toString())
+                PathUtils.getExternalAppCachePath(mContext!!) + UUID.randomUUID().toString() + ".zip"
             // copy asset file to temp path
             if (!ResourceUtils.copyFileFromAssets(filePath, tempFileName, mContext!!)) {
                 result.error("File Error", "File not found!", "$filePath")
