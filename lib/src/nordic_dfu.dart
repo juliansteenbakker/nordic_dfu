@@ -24,8 +24,36 @@ class NordicDfu {
   static const MethodChannel _methodChannel = MethodChannel(_methodChannelName);
   static const EventChannel _eventChannel = EventChannel(_eventChannelName);
 
+  // Private map to store address mappings (String -> String)
+  final Map<String, String> _addressMap = {};
+
   StreamSubscription<void>? _events;
   final Map<String, DfuEventHandler> _eventHandlerMap = {};
+
+  // Method to set new entries in the map
+  void setAddressMapping(String originalAddress, String translatedAddress) {
+    if (originalAddress.isNotEmpty && translatedAddress.isNotEmpty) {
+      _addressMap[originalAddress] = translatedAddress;
+    }
+  }
+
+  /// Method to get translated address or return original if not found
+  /// Return the translated address if it exists, otherwise return the original address
+  /// @param address the address to translate
+  String getTranslatedAddress(String address) {
+    return _addressMap[address] ?? address;
+  }
+
+  /// Method to remove a mapping
+  /// @param originalAddress the address to remove
+  void removeAddressMapping(String originalAddress) {
+    _addressMap.remove(originalAddress);
+  }
+
+  /// Method to clear all mappings
+  void clearAddressMappings() {
+    _addressMap.clear();
+  }
 
   void _ensureEventStreamSetup() {
     if (_events != null) return;
@@ -69,51 +97,52 @@ class NordicDfu {
       values = null;
     }
 
-    final handler = _eventHandlerMap[address];
-    handler?.dispatchEvent(key, values, address);
+    final translatedAddress = getTranslatedAddress(address);
+
+    final handler = _eventHandlerMap[translatedAddress];
+    handler?.dispatchEvent(key, values, translatedAddress);
   }
 
   /// Starts the DFU process.
-  Future<String?> startDfu(
-    String address,
-    String filePath, {
-    String? name,
-    bool fileInAsset = false,
-    bool forceDfu = false,
-    int? numberOfPackets,
-    bool enableUnsafeExperimentalButtonlessServiceInSecureDfu = false,
-    @Deprecated('Use androidParameters instead')
-    AndroidSpecialParameter? androidSpecialParameter,
-    @Deprecated('Use darwinParameters instead')
-    IosSpecialParameter? iosSpecialParameter,
-    AndroidParameters androidParameters = const AndroidParameters(),
-    DarwinParameters darwinParameters = const DarwinParameters(),
-    DfuEventHandler? dfuEventHandler,
-    @Deprecated('Use dfuEventHandler.onDeviceConnected instead')
-    DfuCallback? onDeviceConnected,
-    @Deprecated('Use dfuEventHandler.onDeviceConnecting instead')
-    DfuCallback? onDeviceConnecting,
-    @Deprecated('Use dfuEventHandler.onDeviceDisconnected instead')
-    DfuCallback? onDeviceDisconnected,
-    @Deprecated('Use dfuEventHandler.onDeviceDisconnecting instead')
-    DfuCallback? onDeviceDisconnecting,
-    @Deprecated('Use dfuEventHandler.onDfuAborted instead')
-    DfuCallback? onDfuAborted,
-    @Deprecated('Use dfuEventHandler.onDfuCompleted instead')
-    DfuCallback? onDfuCompleted,
-    @Deprecated('Use dfuEventHandler.onDfuProcessStarted instead')
-    DfuCallback? onDfuProcessStarted,
-    @Deprecated('Use dfuEventHandler.onDfuProcessStarting instead')
-    DfuCallback? onDfuProcessStarting,
-    @Deprecated('Use dfuEventHandler.onEnablingDfuMode instead')
-    DfuCallback? onEnablingDfuMode,
-    @Deprecated('Use dfuEventHandler.onFirmwareValidating instead')
-    DfuCallback? onFirmwareValidating,
-    @Deprecated('Use dfuEventHandler.onError instead')
-    DfuErrorCallback? onError,
-    @Deprecated('Use dfuEventHandler.onProgressChanged instead')
-    DfuProgressCallback? onProgressChanged,
-  }) async {
+  Future<String?> startDfu(String address,
+      String filePath, {
+        String? name,
+        bool fileInAsset = false,
+        bool forceDfu = false,
+        int? numberOfPackets,
+        bool enableUnsafeExperimentalButtonlessServiceInSecureDfu = false,
+        @Deprecated('Use androidParameters instead')
+        AndroidSpecialParameter? androidSpecialParameter,
+        @Deprecated('Use darwinParameters instead')
+        IosSpecialParameter? iosSpecialParameter,
+        AndroidParameters androidParameters = const AndroidParameters(),
+        DarwinParameters darwinParameters = const DarwinParameters(),
+        DfuEventHandler? dfuEventHandler,
+        @Deprecated('Use dfuEventHandler.onDeviceConnected instead')
+        DfuCallback? onDeviceConnected,
+        @Deprecated('Use dfuEventHandler.onDeviceConnecting instead')
+        DfuCallback? onDeviceConnecting,
+        @Deprecated('Use dfuEventHandler.onDeviceDisconnected instead')
+        DfuCallback? onDeviceDisconnected,
+        @Deprecated('Use dfuEventHandler.onDeviceDisconnecting instead')
+        DfuCallback? onDeviceDisconnecting,
+        @Deprecated('Use dfuEventHandler.onDfuAborted instead')
+        DfuCallback? onDfuAborted,
+        @Deprecated('Use dfuEventHandler.onDfuCompleted instead')
+        DfuCallback? onDfuCompleted,
+        @Deprecated('Use dfuEventHandler.onDfuProcessStarted instead')
+        DfuCallback? onDfuProcessStarted,
+        @Deprecated('Use dfuEventHandler.onDfuProcessStarting instead')
+        DfuCallback? onDfuProcessStarting,
+        @Deprecated('Use dfuEventHandler.onEnablingDfuMode instead')
+        DfuCallback? onEnablingDfuMode,
+        @Deprecated('Use dfuEventHandler.onFirmwareValidating instead')
+        DfuCallback? onFirmwareValidating,
+        @Deprecated('Use dfuEventHandler.onError instead')
+        DfuErrorCallback? onError,
+        @Deprecated('Use dfuEventHandler.onProgressChanged instead')
+        DfuProgressCallback? onProgressChanged,
+      }) async {
     _eventHandlerMap[address] = DfuEventHandler(
       onDeviceConnected:
           dfuEventHandler?.onDeviceConnected ?? onDeviceConnected,
