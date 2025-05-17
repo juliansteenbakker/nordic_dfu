@@ -104,45 +104,46 @@ class NordicDfu {
   }
 
   /// Starts the DFU process.
-  Future<String?> startDfu(String address,
-      String filePath, {
-        String? name,
-        bool fileInAsset = false,
-        bool forceDfu = false,
-        int? numberOfPackets,
-        bool enableUnsafeExperimentalButtonlessServiceInSecureDfu = false,
-        @Deprecated('Use androidParameters instead')
-        AndroidSpecialParameter? androidSpecialParameter,
-        @Deprecated('Use darwinParameters instead')
-        IosSpecialParameter? iosSpecialParameter,
-        AndroidParameters androidParameters = const AndroidParameters(),
-        DarwinParameters darwinParameters = const DarwinParameters(),
-        DfuEventHandler? dfuEventHandler,
-        @Deprecated('Use dfuEventHandler.onDeviceConnected instead')
-        DfuCallback? onDeviceConnected,
-        @Deprecated('Use dfuEventHandler.onDeviceConnecting instead')
-        DfuCallback? onDeviceConnecting,
-        @Deprecated('Use dfuEventHandler.onDeviceDisconnected instead')
-        DfuCallback? onDeviceDisconnected,
-        @Deprecated('Use dfuEventHandler.onDeviceDisconnecting instead')
-        DfuCallback? onDeviceDisconnecting,
-        @Deprecated('Use dfuEventHandler.onDfuAborted instead')
-        DfuCallback? onDfuAborted,
-        @Deprecated('Use dfuEventHandler.onDfuCompleted instead')
-        DfuCallback? onDfuCompleted,
-        @Deprecated('Use dfuEventHandler.onDfuProcessStarted instead')
-        DfuCallback? onDfuProcessStarted,
-        @Deprecated('Use dfuEventHandler.onDfuProcessStarting instead')
-        DfuCallback? onDfuProcessStarting,
-        @Deprecated('Use dfuEventHandler.onEnablingDfuMode instead')
-        DfuCallback? onEnablingDfuMode,
-        @Deprecated('Use dfuEventHandler.onFirmwareValidating instead')
-        DfuCallback? onFirmwareValidating,
-        @Deprecated('Use dfuEventHandler.onError instead')
-        DfuErrorCallback? onError,
-        @Deprecated('Use dfuEventHandler.onProgressChanged instead')
-        DfuProgressCallback? onProgressChanged,
-      }) async {
+  Future<String?> startDfu(
+    String address,
+    String filePath, {
+      String? name,
+      bool fileInAsset = false,
+      bool forceDfu = false,
+      int? numberOfPackets,
+      bool enableUnsafeExperimentalButtonlessServiceInSecureDfu = false,
+      @Deprecated('Use androidParameters instead')
+      AndroidSpecialParameter? androidSpecialParameter,
+      @Deprecated('Use darwinParameters instead')
+      IosSpecialParameter? iosSpecialParameter,
+      AndroidParameters androidParameters = const AndroidParameters(),
+      DarwinParameters darwinParameters = const DarwinParameters(),
+      DfuEventHandler? dfuEventHandler,
+      @Deprecated('Use dfuEventHandler.onDeviceConnected instead')
+      DfuCallback? onDeviceConnected,
+      @Deprecated('Use dfuEventHandler.onDeviceConnecting instead')
+      DfuCallback? onDeviceConnecting,
+      @Deprecated('Use dfuEventHandler.onDeviceDisconnected instead')
+      DfuCallback? onDeviceDisconnected,
+      @Deprecated('Use dfuEventHandler.onDeviceDisconnecting instead')
+      DfuCallback? onDeviceDisconnecting,
+      @Deprecated('Use dfuEventHandler.onDfuAborted instead')
+      DfuCallback? onDfuAborted,
+      @Deprecated('Use dfuEventHandler.onDfuCompleted instead')
+      DfuCallback? onDfuCompleted,
+      @Deprecated('Use dfuEventHandler.onDfuProcessStarted instead')
+      DfuCallback? onDfuProcessStarted,
+      @Deprecated('Use dfuEventHandler.onDfuProcessStarting instead')
+      DfuCallback? onDfuProcessStarting,
+      @Deprecated('Use dfuEventHandler.onEnablingDfuMode instead')
+      DfuCallback? onEnablingDfuMode,
+      @Deprecated('Use dfuEventHandler.onFirmwareValidating instead')
+      DfuCallback? onFirmwareValidating,
+      @Deprecated('Use dfuEventHandler.onError instead')
+      DfuErrorCallback? onError,
+      @Deprecated('Use dfuEventHandler.onProgressChanged instead')
+      DfuProgressCallback? onProgressChanged,
+    }) async {
     _eventHandlerMap[address] = DfuEventHandler(
       onDeviceConnected:
           dfuEventHandler?.onDeviceConnected ?? onDeviceConnected,
