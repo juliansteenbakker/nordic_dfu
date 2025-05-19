@@ -30,7 +30,7 @@ class NordicDfu {
   StreamSubscription<void>? _events;
   final Map<String, DfuEventHandler> _eventHandlerMap = {};
 
-  // Method to set new entries in the map
+  /// Method to set new entries in the map
   void setAddressMapping(String originalAddress, String translatedAddress) {
     if (originalAddress.isNotEmpty && translatedAddress.isNotEmpty) {
       _addressMap[originalAddress] = translatedAddress;
