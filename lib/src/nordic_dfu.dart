@@ -173,8 +173,8 @@ class NordicDfu {
   }
 
   /// Disposes of the event stream subscription.
-  void dispose() {
-    _events?.cancel();
+  Future<void> dispose() async {
+    await _events?.cancel();
     _events = null;
   }
 }

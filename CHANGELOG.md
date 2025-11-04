@@ -1,3 +1,6 @@
+## NEXT
+* Made dispose async, due to underlying events.cancel being async.
+
 ## 7.0.0
 New Features:
 * Added parallel DFU support (thanks @Flasher-MS !)
