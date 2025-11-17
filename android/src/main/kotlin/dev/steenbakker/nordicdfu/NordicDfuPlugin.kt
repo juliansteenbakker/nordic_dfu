@@ -28,8 +28,7 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHan
 
     override fun onAttachedToEngine(binding: FlutterPluginBinding) {
         mContext = binding.applicationContext
-        nordicDfu = NordicDfu(binding.applicationContext)
-        nordicDfu?.setCallback(this)
+        nordicDfu = NordicDfu(binding.applicationContext, this)
 
         methodChannel = MethodChannel(binding.binaryMessenger, "dev.steenbakker.nordic_dfu/method")
         methodChannel!!.setMethodCallHandler(this)
@@ -39,7 +38,6 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHan
     }
 
     override fun onDetachedFromEngine(binding: FlutterPluginBinding) {
-        nordicDfu?.cleanup()
         nordicDfu = null
         mContext = null
         methodChannel = null
@@ -81,6 +79,9 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHan
         val numberOfRetries = call.argument<Int>("numberOfRetries")
 
         val rebootTime = call.argument<Int>("rebootTime")?.toLong()
+        val mbrSize = call.argument<Int>("mbrSize")
+        val scope = call.argument<Int>("scope")
+        val currentMtu = call.argument<Int>("currentMtu")
 
         if (fileInAsset == null) fileInAsset = false
         if (address == null || filePath == null) {
@@ -119,7 +120,10 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHan
             numberOfPackets = numberOfPackets,
             dataDelay = dataDelay,
             numberOfRetries = numberOfRetries,
-            rebootTime = rebootTime
+            rebootTime = rebootTime,
+            mbrSize = mbrSize,
+            scope = scope,
+            currentMtu = currentMtu
         )
 
         // Store pending result for this address

@@ -8,6 +8,7 @@ import android.os.Looper
 import android.util.Log
 import no.nordicsemi.android.dfu.DfuBaseService
 import no.nordicsemi.android.dfu.DfuBaseService.NOTIFICATION_ID
+import no.nordicsemi.android.dfu.DfuProgressListener
 import no.nordicsemi.android.dfu.DfuProgressListenerAdapter
 import no.nordicsemi.android.dfu.DfuServiceInitiator
 import no.nordicsemi.android.dfu.DfuServiceListenerHelper
@@ -16,11 +17,10 @@ import no.nordicsemi.android.dfu.DfuServiceListenerHelper
  * Core Nordic DFU logic handler
  * Manages DFU processes independently of Flutter
  */
-class NordicDfu(private val context: Context) {
+class NordicDfu(private val context: Context, private val callback: DfuCallback) {
 
     private val activeDfuMap: MutableMap<String, DfuProcess> = mutableMapOf()
     private var hasCreatedNotification = false
-    private var callback: DfuCallback? = null
 
     companion object {
         private val DFU_SERVICE_CLASSES = arrayListOf(
@@ -35,13 +35,6 @@ class NordicDfu(private val context: Context) {
             // more service classes can be added here to support more parallel DFU processes
             // (make sure to also update AndroidManifest.xml)
         )
-    }
-
-    /**
-     * Set the callback for DFU events
-     */
-    fun setCallback(callback: DfuCallback?) {
-        this.callback = callback
     }
 
     /**
@@ -75,6 +68,15 @@ class NordicDfu(private val context: Context) {
         }
         config.rebootTime?.let {
             starter.setRebootTime(it)
+        }
+        config.mbrSize?.let {
+            starter.setMbrSize(it)
+        }
+        config.scope?.let {
+            starter.setScope(it)
+        }
+        config.currentMtu?.let {
+            starter.setCurrentMtu(it)
         }
 
         // Register progress listener
@@ -145,14 +147,6 @@ class NordicDfu(private val context: Context) {
         return activeDfuMap.size
     }
 
-    /**
-     * Clean up resources
-     */
-    fun cleanup() {
-        callback = null
-        // Note: activeDfuMap is intentionally not cleared here as DFU processes may still be running
-    }
-
     private fun getAvailableDfuServiceClass(): Class<out DfuBaseService>? {
         return DFU_SERVICE_CLASSES.firstOrNull { serviceClass ->
             activeDfuMap.values.none { it.serviceClass == serviceClass }
@@ -167,11 +161,11 @@ class NordicDfu(private val context: Context) {
         }, 200)
     }
 
-    private val dfuProgressListener: DfuProgressListenerAdapter =
+    private val dfuProgressListener: DfuProgressListener =
         object : DfuProgressListenerAdapter() {
             override fun onDeviceConnected(deviceAddress: String) {
                 super.onDeviceConnected(deviceAddress)
-                callback?.onDeviceConnected(deviceAddress)
+                callback.onDeviceConnected(deviceAddress)
             }
 
             override fun onError(
@@ -179,57 +173,57 @@ class NordicDfu(private val context: Context) {
             ) {
                 super.onError(deviceAddress, error, errorType, message)
                 cancelNotification()
-                callback?.onError(deviceAddress, error, errorType, message)
+                callback.onError(deviceAddress, error, errorType, message)
                 activeDfuMap.remove(deviceAddress)
             }
 
             override fun onDeviceConnecting(deviceAddress: String) {
                 super.onDeviceConnecting(deviceAddress)
-                callback?.onDeviceConnecting(deviceAddress)
+                callback.onDeviceConnecting(deviceAddress)
             }
 
             override fun onDeviceDisconnected(deviceAddress: String) {
                 super.onDeviceDisconnected(deviceAddress)
-                callback?.onDeviceDisconnected(deviceAddress)
+                callback.onDeviceDisconnected(deviceAddress)
             }
 
             override fun onDeviceDisconnecting(deviceAddress: String) {
                 super.onDeviceDisconnecting(deviceAddress)
-                callback?.onDeviceDisconnecting(deviceAddress)
+                callback.onDeviceDisconnecting(deviceAddress)
             }
 
             override fun onDfuAborted(deviceAddress: String) {
                 super.onDfuAborted(deviceAddress)
                 cancelNotification()
-                callback?.onDfuAborted(deviceAddress)
+                callback.onDfuAborted(deviceAddress)
                 activeDfuMap.remove(deviceAddress)
             }
 
             override fun onDfuCompleted(deviceAddress: String) {
                 super.onDfuCompleted(deviceAddress)
                 cancelNotification()
-                callback?.onDfuCompleted(deviceAddress)
+                callback.onDfuCompleted(deviceAddress)
                 activeDfuMap.remove(deviceAddress)
             }
 
             override fun onDfuProcessStarted(deviceAddress: String) {
                 super.onDfuProcessStarted(deviceAddress)
-                callback?.onDfuProcessStarted(deviceAddress)
+                callback.onDfuProcessStarted(deviceAddress)
             }
 
             override fun onDfuProcessStarting(deviceAddress: String) {
                 super.onDfuProcessStarting(deviceAddress)
-                callback?.onDfuProcessStarting(deviceAddress)
+                callback.onDfuProcessStarting(deviceAddress)
             }
 
             override fun onEnablingDfuMode(deviceAddress: String) {
                 super.onEnablingDfuMode(deviceAddress)
-                callback?.onEnablingDfuMode(deviceAddress)
+                callback.onEnablingDfuMode(deviceAddress)
             }
 
             override fun onFirmwareValidating(deviceAddress: String) {
                 super.onFirmwareValidating(deviceAddress)
-                callback?.onFirmwareValidating(deviceAddress)
+                callback.onFirmwareValidating(deviceAddress)
             }
 
             override fun onProgressChanged(
@@ -243,7 +237,7 @@ class NordicDfu(private val context: Context) {
                 super.onProgressChanged(
                     deviceAddress, percent, speed, avgSpeed, currentPart, partsTotal
                 )
-                callback?.onProgressChanged(
+                callback.onProgressChanged(
                     deviceAddress, percent, speed, avgSpeed, currentPart, partsTotal
                 )
             }

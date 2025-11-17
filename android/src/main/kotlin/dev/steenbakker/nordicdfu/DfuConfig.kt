@@ -17,5 +17,8 @@ data class DfuConfig(
     val numberOfPackets: Int?,
     val dataDelay: Int?,
     val numberOfRetries: Int?,
-    val rebootTime: Long?
+    val rebootTime: Long?,
+    val mbrSize: Int?,
+    val scope: Int?,
+    val currentMtu: Int?
 )
