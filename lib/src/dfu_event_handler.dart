@@ -79,22 +79,25 @@ class DfuEventHandler {
   DfuCallback? onDfuCompleted;
 
   /// Callback triggered when the DFU process has started.
-  ///
-  /// Not available on iOS/Darwin
   DfuCallback? onDfuProcessStarted;
 
   /// Callback triggered when the DFU process is in the initial stage of starting.
   DfuCallback? onDfuProcessStarting;
 
   /// Callback triggered when enabling DFU mode on the device.
+  ///
+  /// Only called when device needs to switch to dfu mode
   DfuCallback? onEnablingDfuMode;
 
   /// Callback triggered when the firmware validation step is in progress.
+  ///
+  /// Only called when firmware needs to be validated
   DfuCallback? onFirmwareValidating;
 
   /// Callback triggered when the firmware validation step is in progress.
   ///
   /// Not available on Android
+  @Deprecated('Use onDfuProcessStarted instead')
   DfuCallback? onFirmwareUploading;
 
   /// Callback triggered when an error occurs during the DFU process.
