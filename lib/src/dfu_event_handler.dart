@@ -57,12 +57,16 @@ class DfuEventHandler {
   });
 
   /// Callback triggered when the device has successfully connected.
+  ///
+  /// Not available on iOS/Darwin
   DfuCallback? onDeviceConnected;
 
   /// Callback triggered when the connection process to the device is ongoing.
   DfuCallback? onDeviceConnecting;
 
   /// Callback triggered when the device has been disconnected.
+  ///
+  /// Not available on iOS/Darwin
   DfuCallback? onDeviceDisconnected;
 
   /// Callback triggered when the disconnection process from the device is ongoing.
@@ -75,6 +79,8 @@ class DfuEventHandler {
   DfuCallback? onDfuCompleted;
 
   /// Callback triggered when the DFU process has started.
+  ///
+  /// Not available on iOS/Darwin
   DfuCallback? onDfuProcessStarted;
 
   /// Callback triggered when the DFU process is in the initial stage of starting.
@@ -125,7 +131,7 @@ class DfuEventHandler {
       case 'onFirmwareValidating':
         onFirmwareValidating?.call(address);
       case 'onFirmwareUploading':
-        onFirmwareValidating?.call(address);
+        onFirmwareUploading?.call(address);
       case 'onError':
         onError?.call(
           address,
