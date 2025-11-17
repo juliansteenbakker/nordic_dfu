@@ -37,12 +37,14 @@ class ExampleDfuState {
   final List<DfuEvent> events = [];
 
   void addEvent(String eventName, String message, {bool isError = false}) {
-    events.add(DfuEvent(
-      timestamp: DateTime.now(),
-      eventName: eventName,
-      message: message,
-      isError: isError,
-    ));
+    events.add(
+      DfuEvent(
+        timestamp: DateTime.now(),
+        eventName: eventName,
+        message: message,
+        isError: isError,
+      ),
+    );
   }
 
   void clearEvents() {
@@ -94,6 +96,8 @@ class MyAppState extends State<MyApp> {
 
     debugPrint('$tag Selected firmware file: $filePath');
 
+    if (!context.mounted) return;
+
     // Start DFU with the selected file
     await _startDfu(context, deviceId, filePath);
   }
@@ -114,14 +118,18 @@ class MyAppState extends State<MyApp> {
     await _startDfu(context, deviceId, state.filePath!);
   }
 
-  Future<void> _startDfu(BuildContext context, String deviceId, String filePath) async {
+  Future<void> _startDfu(
+    BuildContext context,
+    String deviceId,
+    String filePath,
+  ) async {
     final messenger = ScaffoldMessenger.of(context)
-    ..showSnackBar(
-      SnackBar(
-        content: Text('Starting DFU with file: ${filePath.split('/').last}'),
-        duration: const Duration(seconds: 2),
-      ),
-    );
+      ..showSnackBar(
+        SnackBar(
+          content: Text('Starting DFU with file: ${filePath.split('/').last}'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
 
     setState(() {
       dfuStateMap[deviceId] = ExampleDfuState(
@@ -129,12 +137,13 @@ class MyAppState extends State<MyApp> {
         filePath: filePath,
       );
       dfuStateMap[deviceId]?.clearEvents();
-      dfuStateMap[deviceId]?.addEvent('File Selected', 'File: ${filePath.split('/').last}');
+      dfuStateMap[deviceId]
+          ?.addEvent('File Selected', 'File: ${filePath.split('/').last}');
     });
 
     // Auto-open timeline dialog when DFU starts
     Future.delayed(const Duration(milliseconds: 300), () {
-      if (mounted) {
+      if (context.mounted) {
         _showEventTimeline(context, deviceId);
       }
     });
@@ -143,31 +152,41 @@ class MyAppState extends State<MyApp> {
         onDeviceConnecting: (string) {
           debugPrint('$tag device connecting: $string');
           setState(() {
-            dfuStateMap[deviceId]?.addEvent('Connecting', 'Connecting to device...');
+            dfuStateMap[deviceId]
+                ?.addEvent('Connecting', 'Connecting to device...');
           });
         },
         onDeviceConnected: (string) {
           debugPrint('$tag device connected: $string'); //1
           setState(() {
-            dfuStateMap[deviceId]?.addEvent('Connected', 'Device connected successfully');
+            dfuStateMap[deviceId]
+                ?.addEvent('Connected', 'Device connected successfully');
           });
         },
-        onDeviceDisconnecting: (string) { // 3
+        onDeviceDisconnecting: (string) {
+          // 3
           debugPrint('$tag device disconnecting: $string');
           setState(() {
-            dfuStateMap[deviceId]?.addEvent('Disconnecting', 'Disconnecting from device...');
+            dfuStateMap[deviceId]
+                ?.addEvent('Disconnecting', 'Disconnecting from device...');
           });
         },
-        onDeviceDisconnected: (string) { // 4
+        onDeviceDisconnected: (string) {
+          // 4
           debugPrint('$tag device disconnected: $string');
           setState(() {
-            dfuStateMap[deviceId]?.addEvent('Disconnected', 'Device disconnected');
+            dfuStateMap[deviceId]
+                ?.addEvent('Disconnected', 'Device disconnected');
           });
         },
         onDfuAborted: (string) {
           debugPrint('$tag dfu aborted: $string');
           setState(() {
-            dfuStateMap[deviceId]?.addEvent('Aborted', 'DFU process aborted by user', isError: true);
+            dfuStateMap[deviceId]?.addEvent(
+              'Aborted',
+              'DFU process aborted by user',
+              isError: true,
+            );
           });
           messenger.showSnackBar(
             SnackBar(
@@ -176,10 +195,12 @@ class MyAppState extends State<MyApp> {
             ),
           );
         },
-        onDfuCompleted: (string) { //5
+        onDfuCompleted: (string) {
+          //5
           debugPrint('$tag dfu completed: $string');
           setState(() {
-            dfuStateMap[deviceId]?.addEvent('Completed', 'DFU completed successfully! ✓');
+            dfuStateMap[deviceId]
+                ?.addEvent('Completed', 'DFU completed successfully! ✓');
             dfuStateMap[deviceId]?.lastError = null;
           });
           messenger.showSnackBar(
@@ -189,34 +210,45 @@ class MyAppState extends State<MyApp> {
             ),
           );
         },
-        onDfuProcessStarted: (string) {// start
+        onDfuProcessStarted: (string) {
+          // start
           debugPrint('$tag dfu process started: $string');
           setState(() {
-            dfuStateMap[deviceId]?.addEvent('Process Started', 'DFU process started, uploading firmware...');
+            dfuStateMap[deviceId]?.addEvent(
+              'Process Started',
+              'DFU process started, uploading firmware...',
+            );
           });
         },
         onDfuProcessStarting: (string) {
           debugPrint('$tag dfu process starting: $string'); //2
           setState(() {
-            dfuStateMap[deviceId]?.addEvent('Process Starting', 'Initializing DFU process...');
+            dfuStateMap[deviceId]
+                ?.addEvent('Process Starting', 'Initializing DFU process...');
           });
         },
         onEnablingDfuMode: (string) {
           debugPrint('$tag dfu enabled: $string');
           setState(() {
-            dfuStateMap[deviceId]?.addEvent('Enabling DFU Mode', 'Switching device to DFU mode...');
+            dfuStateMap[deviceId]?.addEvent(
+              'Enabling DFU Mode',
+              'Switching device to DFU mode...',
+            );
           });
         },
         onFirmwareValidating: (string) {
           debugPrint('$tag firmware validating: $string');
           setState(() {
-            dfuStateMap[deviceId]?.addEvent('Validating', 'Validating firmware...');
+            dfuStateMap[deviceId]
+                ?.addEvent('Validating', 'Validating firmware...');
           });
         },
+        // ignore: deprecated_member_use
         onFirmwareUploading: (string) {
           debugPrint('$tag firmware uploading: $string');
           setState(() {
-            dfuStateMap[deviceId]?.addEvent('Uploading', 'Uploading firmware to device...');
+            dfuStateMap[deviceId]
+                ?.addEvent('Uploading', 'Uploading firmware to device...');
           });
         },
         onError: (
@@ -226,9 +258,11 @@ class MyAppState extends State<MyApp> {
           message,
         ) {
           debugPrint(
-              '$tag error: device $address, error $error, errorType $errorType, message $message');
+            '$tag error: device $address, error $error, errorType $errorType, message $message',
+          );
           setState(() {
-            dfuStateMap[deviceId]?.addEvent('Error', 'Error $error: $message', isError: true);
+            dfuStateMap[deviceId]
+                ?.addEvent('Error', 'Error $error: $message', isError: true);
             dfuStateMap[deviceId]?.lastError = message;
           });
           messenger.showSnackBar(
@@ -248,7 +282,8 @@ class MyAppState extends State<MyApp> {
           partsTotal,
         ) {
           debugPrint(
-              '$tag progress changed: device $deviceAddress, percent: $percent, speed $speed, avgSpeed $avgSpeed, currentPart $currentPart, total parts: $partsTotal');
+            '$tag progress changed: device $deviceAddress, percent: $percent, speed $speed, avgSpeed $avgSpeed, currentPart $currentPart, total parts: $partsTotal',
+          );
           setState(() {
             dfuStateMap[deviceId]?.progressPercent = percent;
             if (percent % 10 == 0 || percent == 100) {
@@ -277,7 +312,8 @@ class MyAppState extends State<MyApp> {
       setState(() {
         dfuStateMap[deviceId]?.dfuRunning = false;
         dfuStateMap[deviceId]?.lastError = errorMsg;
-        dfuStateMap[deviceId]?.addEvent('Exception', 'DFU failed: $errorMsg', isError: true);
+        dfuStateMap[deviceId]
+            ?.addEvent('Exception', 'DFU failed: $errorMsg', isError: true);
       });
       debugPrint('$tag DFU Exception: $e');
       messenger.showSnackBar(
@@ -410,7 +446,8 @@ class MyAppState extends State<MyApp> {
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: Colors.blue.shade100,
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                      borderRadius:
+                          const BorderRadius.vertical(top: Radius.circular(20)),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -426,7 +463,8 @@ class MyAppState extends State<MyApp> {
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              if (isDfuRunning && currentState.progressPercent != null)
+                              if (isDfuRunning &&
+                                  currentState.progressPercent != null)
                                 Padding(
                                   padding: const EdgeInsets.only(top: 4),
                                   child: Text(
@@ -461,25 +499,36 @@ class MyAppState extends State<MyApp> {
                         itemCount: events.length,
                         itemBuilder: (context, index) {
                           final event = events[index];
-                          final timeStr = '${event.timestamp.hour.toString().padLeft(2, '0')}:'
+                          final timeStr =
+                              '${event.timestamp.hour.toString().padLeft(2, '0')}:'
                               '${event.timestamp.minute.toString().padLeft(2, '0')}:'
                               '${event.timestamp.second.toString().padLeft(2, '0')}';
                           return Card(
                             margin: const EdgeInsets.only(bottom: 8),
-                            color: event.isError ? Colors.red.shade50 : Colors.green.shade50,
+                            color: event.isError
+                                ? Colors.red.shade50
+                                : Colors.green.shade50,
                             child: ListTile(
                               leading: Icon(
-                                event.isError ? Icons.error : Icons.check_circle,
-                                color: event.isError ? Colors.red : Colors.green,
+                                event.isError
+                                    ? Icons.error
+                                    : Icons.check_circle,
+                                color:
+                                    event.isError ? Colors.red : Colors.green,
                               ),
                               title: Text(
                                 event.eventName,
-                                style: const TextStyle(fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                               subtitle: Text(event.message),
                               trailing: Text(
                                 timeStr,
-                                style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
                               ),
                             ),
                           );
@@ -490,7 +539,9 @@ class MyAppState extends State<MyApp> {
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: Colors.grey.shade100,
-                      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
+                      borderRadius: const BorderRadius.vertical(
+                        bottom: Radius.circular(20),
+                      ),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -507,7 +558,8 @@ class MyAppState extends State<MyApp> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.red,
                                 foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
                               ),
                             ),
                           )
@@ -520,7 +572,8 @@ class MyAppState extends State<MyApp> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.blue,
                                 foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
                               ),
                             ),
                           ),
@@ -545,7 +598,8 @@ class MyAppState extends State<MyApp> {
       onPress: dfuStateMap[deviceId]?.dfuRunning ?? false
           ? () => NordicDfu().abortDfu(address: deviceId)
           : () => doDfu(context, deviceId),
-      onRetry: dfuStateMap[deviceId]?.lastError != null && !(dfuStateMap[deviceId]?.dfuRunning ?? false)
+      onRetry: dfuStateMap[deviceId]?.lastError != null &&
+              !(dfuStateMap[deviceId]?.dfuRunning ?? false)
           ? () => retryDfu(context, deviceId)
           : null,
       onShowTimeline: dfuStateMap[deviceId]?.events.isNotEmpty ?? false
@@ -605,16 +659,27 @@ class DeviceItem extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                      Text(scanResult.device.remoteId.str, style: const TextStyle(fontSize: 12)),
-                      Text('RSSI: ${scanResult.rssi}', style: const TextStyle(fontSize: 12)),
+                      Text(
+                        name,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        scanResult.device.remoteId.str,
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                      Text(
+                        'RSSI: ${scanResult.rssi}',
+                        style: const TextStyle(fontSize: 12),
+                      ),
                       if (dfuState?.progressPercent != null)
                         Padding(
                           padding: const EdgeInsets.only(top: 4),
                           child: LinearProgressIndicator(
                             value: (dfuState!.progressPercent!) / 100,
                             backgroundColor: Colors.grey.shade300,
-                            valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
+                            valueColor: const AlwaysStoppedAnimation<Color>(
+                              Colors.blue,
+                            ),
                           ),
                         ),
                     ],
@@ -653,7 +718,9 @@ class DeviceItem extends StatelessWidget {
                         dfuState!.events.last.message,
                         style: TextStyle(
                           fontSize: 12,
-                          color: dfuState!.events.last.isError ? Colors.red : Colors.green,
+                          color: dfuState!.events.last.isError
+                              ? Colors.red
+                              : Colors.green,
                           fontStyle: FontStyle.italic,
                         ),
                         maxLines: 1,

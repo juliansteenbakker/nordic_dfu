@@ -51,7 +51,7 @@ class DfuEventHandler {
     this.onDfuProcessStarting,
     this.onEnablingDfuMode,
     this.onFirmwareValidating,
-    this.onFirmwareUploading,
+    @Deprecated('Use onDfuProcessStarted instead') this.onFirmwareUploading,
     this.onError,
     this.onProgressChanged,
   });
@@ -86,12 +86,12 @@ class DfuEventHandler {
 
   /// Callback triggered when enabling DFU mode on the device.
   ///
-  /// Only called when device needs to switch to dfu mode
+  /// Only called when device needs to switch to dfu mode.
   DfuCallback? onEnablingDfuMode;
 
   /// Callback triggered when the firmware validation step is in progress.
   ///
-  /// Only called when firmware needs to be validated
+  /// Only called when firmware needs to be validated.
   DfuCallback? onFirmwareValidating;
 
   /// Callback triggered when the firmware validation step is in progress.
@@ -127,14 +127,14 @@ class DfuEventHandler {
         onDfuCompleted?.call(address);
       case 'onDfuProcessStarted':
         onDfuProcessStarted?.call(address);
+        // ignore: deprecated_member_use(Ignore for backwards compatibility)
+        onFirmwareUploading?.call(address);
       case 'onDfuProcessStarting':
         onDfuProcessStarting?.call(address);
       case 'onEnablingDfuMode':
         onEnablingDfuMode?.call(address);
       case 'onFirmwareValidating':
         onFirmwareValidating?.call(address);
-      case 'onFirmwareUploading':
-        onFirmwareUploading?.call(address);
       case 'onError':
         onError?.call(
           address,
