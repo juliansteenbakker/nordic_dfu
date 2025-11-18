@@ -37,7 +37,8 @@ class ExampleDfuState {
   final List<DfuEvent> events = [];
 
   void addEvent(String eventName, String message, {bool isError = false}) {
-    events.add(
+    events.insert(
+      0,
       DfuEvent(
         timestamp: DateTime.now(),
         eventName: eventName,
@@ -339,7 +340,7 @@ class MyAppState extends State<MyApp> {
     }
 
     await scanSubscription?.cancel();
-    await FlutterBluePlus.startScan();
+    await FlutterBluePlus.startScan(withServices: [Guid("0000FE59-0000-1000-8000-00805F9B34FB")]);
     scanResults.clear();
     scanSubscription = FlutterBluePlus.scanResults.expand((e) => e).listen(
       (scanResult) {
@@ -715,10 +716,10 @@ class DeviceItem extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        dfuState!.events.last.message,
+                        dfuState!.events.first.message,
                         style: TextStyle(
                           fontSize: 12,
-                          color: dfuState!.events.last.isError
+                          color: dfuState!.events.first.isError
                               ? Colors.red
                               : Colors.green,
                           fontStyle: FontStyle.italic,
