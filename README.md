@@ -90,6 +90,9 @@ Available from version 7.0.0
 - ✅ All active DFU processes can be aborted using the `abortDfu` method without an `address`.
 - ❌ DFU processes cannot be individually aborted using the `abortDfu` method with an `address` due to current limitations in the underlying [Android-DFU-Library](https://github.com/NordicSemiconductor/Android-DFU-Library).
 
+## Address Mapping
+The Nordic DFU library now includes an address mapping feature to track devices during firmware updates. [Read the full documentation](./ADDRESS_MAPPING.md) to learn how this improves reliability when devices change MAC addresses in DFU mode.
+
 ## Resources
 
 -   [DFU Introduction](https://infocenter.nordicsemi.com/topic/com.nordic.infocenter.sdk5.v11.0.0/examples_ble_dfu.html?cp=6_0_0_4_3_1 "BLE Bootloader/DFU")
