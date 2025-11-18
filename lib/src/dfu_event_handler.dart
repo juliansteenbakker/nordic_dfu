@@ -1,3 +1,7 @@
+// Ignore deprecation warnings for onFirmwareUploading to maintain backward compatibility
+// while transitioning users to onDfuProcessStarted
+// ignore_for_file: deprecated_member_use_from_same_package
+
 import 'package:flutter/foundation.dart';
 
 /// Callback for when DFU status has changed.
@@ -127,7 +131,7 @@ class DfuEventHandler {
         onDfuCompleted?.call(address);
       case 'onDfuProcessStarted':
         onDfuProcessStarted?.call(address);
-        // ignore: deprecated_member_use(Ignore for backwards compatibility)
+        // Backward compatibility: call deprecated callback
         onFirmwareUploading?.call(address);
       case 'onDfuProcessStarting':
         onDfuProcessStarting?.call(address);
