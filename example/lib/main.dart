@@ -10,6 +10,8 @@ import 'package:permission_handler/permission_handler.dart';
 
 void main() => runApp(const MyApp());
 
+final dfuService = Guid('0000FE59-0000-1000-8000-00805F9B34FB');
+
 class DfuEvent {
   DfuEvent({
     required this.timestamp,
@@ -67,6 +69,9 @@ class MyAppState extends State<MyApp> {
   List<ScanResult> scanResults = <ScanResult>[];
   Map<String, ExampleDfuState> dfuStateMap = {};
   bool get anyDfuRunning => dfuStateMap.values.any((state) => state.dfuRunning);
+
+  // If true, only show devices advertising the DFU service
+  bool onlyDfuService = true;
 
   Future<void> doDfu(BuildContext context, String deviceId) async {
     final messenger = ScaffoldMessenger.of(context);
@@ -345,7 +350,9 @@ class MyAppState extends State<MyApp> {
     }
 
     await scanSubscription?.cancel();
-    await FlutterBluePlus.startScan(withServices: [Guid("0000FE59-0000-1000-8000-00805F9B34FB")]);
+    await FlutterBluePlus.startScan(
+      withServices: onlyDfuService ? [dfuService] : [],
+    );
     scanResults.clear();
     scanSubscription = FlutterBluePlus.scanResults.expand((e) => e).listen(
       (scanResult) {
@@ -402,7 +409,8 @@ class MyAppState extends State<MyApp> {
         // 2. Address matches the incremented address (original + 1)
         final matchesByName = deviceName.toLowerCase().contains('dfu') ||
             deviceName.toLowerCase() == 'dfutarg';
-        final matchesByAddress = dfuAddress.toUpperCase() == expectedDfuAddress.toUpperCase();
+        final matchesByAddress =
+            dfuAddress.toUpperCase() == expectedDfuAddress.toUpperCase();
 
         if (matchesByName || matchesByAddress) {
           final matchReason = matchesByName && matchesByAddress
@@ -440,10 +448,8 @@ class MyAppState extends State<MyApp> {
 
   // Helper to increment MAC address by 1 (common DFU pattern)
   String _incrementMacAddress(String address) {
-    final bytes = address
-        .split(':')
-        .map((e) => int.parse(e, radix: 16))
-        .toList();
+    final bytes =
+        address.split(':').map((e) => int.parse(e, radix: 16)).toList();
 
     // Increment the last byte
     bytes[bytes.length - 1] = (bytes[bytes.length - 1] + 1) % 256;
@@ -468,6 +474,53 @@ class MyAppState extends State<MyApp> {
                 onPressed: NordicDfu().abortDfu,
                 child: const Text('Abort Dfu'),
               ),
+            // Filter toggle for DFU service
+            PopupMenuButton<bool>(
+              icon: Icon(
+                onlyDfuService ? Icons.filter_alt : Icons.filter_alt_off,
+              ),
+              tooltip: 'Scan filter',
+              onSelected: (value) {
+                setState(() {
+                  onlyDfuService = value;
+                });
+                // Restart scan if currently scanning
+                if (isScanning) {
+                  stopScan();
+                  startScan();
+                }
+              },
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: true,
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.check,
+                        color:
+                            onlyDfuService ? Colors.blue : Colors.transparent,
+                      ),
+                      const SizedBox(width: 8),
+                      const Text('DFU Service Only'),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: false,
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.check,
+                        color:
+                            !onlyDfuService ? Colors.blue : Colors.transparent,
+                      ),
+                      const SizedBox(width: 8),
+                      const Text('All Devices'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
             if (isScanning)
               IconButton(
                 icon: const Icon(Icons.pause_circle_filled),
