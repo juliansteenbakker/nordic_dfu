@@ -10,13 +10,49 @@ import 'package:permission_handler/permission_handler.dart';
 
 void main() => runApp(const MyApp());
 
+final dfuService = Guid('0000FE59-0000-1000-8000-00805F9B34FB');
+
+class DfuEvent {
+  DfuEvent({
+    required this.timestamp,
+    required this.eventName,
+    required this.message,
+    this.isError = false,
+  });
+  final DateTime timestamp;
+  final String eventName;
+  final String message;
+  final bool isError;
+}
+
 class ExampleDfuState {
   ExampleDfuState({
     required this.dfuRunning,
     this.progressPercent,
+    this.filePath,
+    this.lastError,
   });
   bool dfuRunning = false;
   int? progressPercent;
+  String? filePath;
+  String? lastError;
+  final List<DfuEvent> events = [];
+
+  void addEvent(String eventName, String message, {bool isError = false}) {
+    events.insert(
+      0,
+      DfuEvent(
+        timestamp: DateTime.now(),
+        eventName: eventName,
+        message: message,
+        isError: isError,
+      ),
+    );
+  }
+
+  void clearEvents() {
+    events.clear();
+  }
 }
 
 class MyApp extends StatefulWidget {
@@ -27,28 +63,227 @@ class MyApp extends StatefulWidget {
 }
 
 class MyAppState extends State<MyApp> {
+  static const tag = 'nordic_dfu_example:';
   StreamSubscription<ScanResult>? scanSubscription;
+  StreamSubscription<ScanResult>? dfuScanSubscription;
   List<ScanResult> scanResults = <ScanResult>[];
   Map<String, ExampleDfuState> dfuStateMap = {};
   bool get anyDfuRunning => dfuStateMap.values.any((state) => state.dfuRunning);
 
-  Future<void> doDfu(String deviceId) async {
+  // If true, only show devices advertising the DFU service
+  bool onlyDfuService = true;
+
+  Future<void> doDfu(BuildContext context, String deviceId) async {
+    final messenger = ScaffoldMessenger.of(context);
     stopScan();
+
+    // Pick ZIP file from device storage
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['zip'],
+      dialogTitle: 'Select DFU firmware file (.zip)',
+    );
+
+    if (result == null) {
+      debugPrint('$tag File selection cancelled');
+      return;
+    }
+
+    final filePath = result.files.single.path;
+    if (filePath == null || filePath.isEmpty) {
+      debugPrint('$tag Invalid file path');
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Invalid file path'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    debugPrint('$tag Selected firmware file: $filePath');
+
+    if (!context.mounted) return;
+
+    // Start DFU with the selected file
+    await _startDfu(context, deviceId, filePath);
+  }
+
+  Future<void> retryDfu(BuildContext context, String deviceId) async {
+    final state = dfuStateMap[deviceId];
+    if (state?.filePath == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No previous file path found'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    debugPrint('$tag Retrying DFU with file: ${state!.filePath}');
+    await _startDfu(context, deviceId, state.filePath!);
+  }
+
+  Future<void> _startDfu(
+    BuildContext context,
+    String deviceId,
+    String filePath,
+  ) async {
+    final messenger = ScaffoldMessenger.of(context)
+      ..showSnackBar(
+        SnackBar(
+          content: Text('Starting DFU with file: ${filePath.split('/').last}'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+
     setState(() {
-      dfuStateMap[deviceId] = ExampleDfuState(dfuRunning: true);
+      dfuStateMap[deviceId] = ExampleDfuState(
+        dfuRunning: true,
+        filePath: filePath,
+      );
+      dfuStateMap[deviceId]?.clearEvents();
+      dfuStateMap[deviceId]
+          ?.addEvent('File Selected', 'File: ${filePath.split('/').last}');
     });
 
-    final result = await FilePicker.platform.pickFiles();
-
-    if (result == null) return;
+    // Auto-open timeline dialog when DFU starts
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (context.mounted) {
+        _showEventTimeline(context, deviceId);
+      }
+    });
     try {
       final eventHandler = DfuEventHandler(
-        onDeviceDisconnecting: (string) {
-          debugPrint('deviceAddress: $string');
+        onDeviceConnecting: (string) {
+          debugPrint('$tag device connecting: $string');
+          setState(() {
+            dfuStateMap[deviceId]
+                ?.addEvent('Connecting', 'Connecting to device...');
+          });
         },
-        // onError: (string) {
-        //   debugPrint('deviceAddress: $string');
-        // },
+        onDeviceConnected: (string) {
+          debugPrint('$tag device connected: $string'); //1
+          setState(() {
+            dfuStateMap[deviceId]
+                ?.addEvent('Connected', 'Device connected successfully');
+          });
+        },
+        onDeviceDisconnecting: (string) {
+          // 3
+          debugPrint('$tag device disconnecting: $string');
+          setState(() {
+            dfuStateMap[deviceId]
+                ?.addEvent('Disconnecting', 'Disconnecting from device...');
+          });
+        },
+        onDeviceDisconnected: (string) {
+          // 4
+          debugPrint('$tag device disconnected: $string');
+          setState(() {
+            dfuStateMap[deviceId]
+                ?.addEvent('Disconnected', 'Device disconnected');
+          });
+        },
+        onDfuAborted: (string) {
+          debugPrint('$tag dfu aborted: $string');
+          setState(() {
+            dfuStateMap[deviceId]?.addEvent(
+              'Aborted',
+              'DFU process aborted by user',
+              isError: true,
+            );
+          });
+          messenger.showSnackBar(
+            SnackBar(
+              content: Text('DFU aborted for $string'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        },
+        onDfuCompleted: (string) {
+          //5
+          debugPrint('$tag dfu completed: $string');
+          setState(() {
+            dfuStateMap[deviceId]
+                ?.addEvent('Completed', 'DFU completed successfully! ✓');
+            dfuStateMap[deviceId]?.lastError = null;
+          });
+          messenger.showSnackBar(
+            SnackBar(
+              content: Text('DFU completed successfully for $string'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        },
+        onDfuProcessStarted: (string) {
+          // start
+          debugPrint('$tag dfu process started: $string');
+          setState(() {
+            dfuStateMap[deviceId]?.addEvent(
+              'Process Started',
+              'DFU process started, uploading firmware...',
+            );
+          });
+        },
+        onDfuProcessStarting: (string) {
+          debugPrint('$tag dfu process starting: $string'); //2
+          setState(() {
+            dfuStateMap[deviceId]
+                ?.addEvent('Process Starting', 'Initializing DFU process...');
+          });
+        },
+        onEnablingDfuMode: (string) {
+          debugPrint('$tag dfu enabled: $string');
+          setState(() {
+            dfuStateMap[deviceId]?.addEvent(
+              'Enabling DFU Mode',
+              'Switching device to DFU mode...',
+            );
+          });
+          // Start scanning for the DFU device
+          if (string == deviceId) {
+            _startScanForDfuDevice(deviceId);
+          }
+        },
+        onFirmwareValidating: (string) {
+          debugPrint('$tag firmware validating: $string');
+          setState(() {
+            dfuStateMap[deviceId]
+                ?.addEvent('Validating', 'Validating firmware...');
+          });
+        },
+        // ignore: deprecated_member_use
+        onFirmwareUploading: (string) {
+          debugPrint('$tag firmware uploading: $string');
+          setState(() {
+            dfuStateMap[deviceId]
+                ?.addEvent('Uploading', 'Uploading firmware to device...');
+          });
+        },
+        onError: (
+          address,
+          error,
+          errorType,
+          message,
+        ) {
+          debugPrint(
+            '$tag error: device $address, error $error, errorType $errorType, message $message',
+          );
+          setState(() {
+            dfuStateMap[deviceId]
+                ?.addEvent('Error', 'Error $error: $message', isError: true);
+            dfuStateMap[deviceId]?.lastError = message;
+          });
+          messenger.showSnackBar(
+            SnackBar(
+              content: Text('DFU Error: $message'),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 5),
+            ),
+          );
+        },
         onProgressChanged: (
           deviceAddress,
           percent,
@@ -57,29 +292,48 @@ class MyAppState extends State<MyApp> {
           currentPart,
           partsTotal,
         ) {
-          debugPrint('deviceAddress: $deviceAddress, percent: $percent');
+          debugPrint(
+            '$tag progress changed: device $deviceAddress, percent: $percent, speed $speed, avgSpeed $avgSpeed, currentPart $currentPart, total parts: $partsTotal',
+          );
           setState(() {
             dfuStateMap[deviceId]?.progressPercent = percent;
+            if (percent % 10 == 0 || percent == 100) {
+              dfuStateMap[deviceId]?.addEvent(
+                'Progress $percent%',
+                'Part $currentPart/$partsTotal - Speed: ${speed.toStringAsFixed(1)} B/s',
+              );
+            }
           });
         },
       );
 
       final s = await NordicDfu().startDfu(
         deviceId,
-        result.files.single.path ?? '',
+        filePath,
         dfuEventHandler: eventHandler,
         androidParameters: const AndroidParameters(rebootTime: 1000),
         // darwinParameters: const DarwinParameters(),
       );
-      debugPrint(s);
+      debugPrint('$tag DFU result: $s');
       setState(() {
         dfuStateMap[deviceId]?.dfuRunning = false;
       });
     } catch (e) {
+      final errorMsg = e.toString();
       setState(() {
         dfuStateMap[deviceId]?.dfuRunning = false;
+        dfuStateMap[deviceId]?.lastError = errorMsg;
+        dfuStateMap[deviceId]
+            ?.addEvent('Exception', 'DFU failed: $errorMsg', isError: true);
       });
-      debugPrint(e.toString());
+      debugPrint('$tag DFU Exception: $e');
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('DFU failed: $errorMsg'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 5),
+        ),
+      );
     }
   }
 
@@ -96,19 +350,24 @@ class MyAppState extends State<MyApp> {
     }
 
     await scanSubscription?.cancel();
-    await FlutterBluePlus.startScan();
+    await FlutterBluePlus.startScan(
+      withServices: onlyDfuService ? [dfuService] : [],
+    );
     scanResults.clear();
     scanSubscription = FlutterBluePlus.scanResults.expand((e) => e).listen(
       (scanResult) {
-        if (scanResults.firstWhereOrNull(
-              (ele) => ele.device.remoteId == scanResult.device.remoteId,
-            ) !=
-            null) {
+        final exists = scanResults.firstWhereOrNull(
+          (ele) => ele.device.remoteId == scanResult.device.remoteId,
+        );
+
+        if (exists != null) {
           return;
         }
+
         setState(() {
-          /// add result to results if not added
-          scanResults.add(scanResult);
+          scanResults
+            ..add(scanResult)
+            ..sort((a, b) => b.rssi.compareTo(a.rssi));
         });
       },
     );
@@ -119,6 +378,85 @@ class MyAppState extends State<MyApp> {
     scanSubscription?.cancel();
     scanSubscription = null;
     setState(() => scanSubscription = null);
+  }
+
+  // Scan for the DFU device and set address mapping
+  Future<void> _startScanForDfuDevice(String deviceId) async {
+    debugPrint('$tag Starting scan for DFU device...');
+
+    // Calculate the expected DFU address (original + 1)
+    final expectedDfuAddress = _incrementMacAddress(deviceId);
+    debugPrint('$tag Expected DFU address: $expectedDfuAddress');
+
+    setState(() {
+      dfuStateMap[deviceId]?.addEvent(
+        'Scanning for DFU',
+        'Looking for device in bootloader mode...',
+      );
+    });
+
+    await dfuScanSubscription?.cancel();
+    await FlutterBluePlus.startScan(timeout: const Duration(seconds: 5));
+
+    dfuScanSubscription = FlutterBluePlus.scanResults.expand((e) => e).listen(
+      (scanResult) {
+        final dfuDevice = scanResult.device;
+        final deviceName = dfuDevice.platformName;
+        final dfuAddress = dfuDevice.remoteId.str;
+
+        // Check if this is the DFU device by:
+        // 1. Name contains "dfu" or is "DfuTarg"
+        // 2. Address matches the incremented address (original + 1)
+        final matchesByName = deviceName.toLowerCase().contains('dfu') ||
+            deviceName.toLowerCase() == 'dfutarg';
+        final matchesByAddress =
+            dfuAddress.toUpperCase() == expectedDfuAddress.toUpperCase();
+
+        if (matchesByName || matchesByAddress) {
+          final matchReason = matchesByName && matchesByAddress
+              ? 'name and address'
+              : matchesByName
+                  ? 'name'
+                  : 'address';
+          debugPrint(
+            '$tag Found DFU device by $matchReason: $deviceName at $dfuAddress',
+          );
+
+          // Set the address mapping
+          NordicDfu().setAddressMapping(dfuAddress, deviceId);
+
+          setState(() {
+            dfuStateMap[deviceId]?.addEvent(
+              'DFU Device Found',
+              'Mapped $dfuAddress → $deviceId (by $matchReason)',
+            );
+          });
+
+          // Stop scanning
+          FlutterBluePlus.stopScan();
+          dfuScanSubscription?.cancel();
+        }
+      },
+    );
+
+    // Auto-cleanup after timeout
+    Future.delayed(const Duration(seconds: 5), () {
+      dfuScanSubscription?.cancel();
+      dfuScanSubscription = null;
+    });
+  }
+
+  // Helper to increment MAC address by 1 (common DFU pattern)
+  String _incrementMacAddress(String address) {
+    final bytes =
+        address.split(':').map((e) => int.parse(e, radix: 16)).toList();
+
+    // Increment the last byte
+    bytes[bytes.length - 1] = (bytes[bytes.length - 1] + 1) % 256;
+
+    return bytes
+        .map((e) => e.toRadixString(16).toUpperCase().padLeft(2, '0'))
+        .join(':');
   }
 
   @override
@@ -136,6 +474,53 @@ class MyAppState extends State<MyApp> {
                 onPressed: NordicDfu().abortDfu,
                 child: const Text('Abort Dfu'),
               ),
+            // Filter toggle for DFU service
+            PopupMenuButton<bool>(
+              icon: Icon(
+                onlyDfuService ? Icons.filter_alt : Icons.filter_alt_off,
+              ),
+              tooltip: 'Scan filter',
+              onSelected: (value) {
+                setState(() {
+                  onlyDfuService = value;
+                });
+                // Restart scan if currently scanning
+                if (isScanning) {
+                  stopScan();
+                  startScan();
+                }
+              },
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: true,
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.check,
+                        color:
+                            onlyDfuService ? Colors.blue : Colors.transparent,
+                      ),
+                      const SizedBox(width: 8),
+                      const Text('DFU Service Only'),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: false,
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.check,
+                        color:
+                            !onlyDfuService ? Colors.blue : Colors.transparent,
+                      ),
+                      const SizedBox(width: 8),
+                      const Text('All Devices'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
             if (isScanning)
               IconButton(
                 icon: const Icon(Icons.pause_circle_filled),
@@ -162,6 +547,187 @@ class MyAppState extends State<MyApp> {
     );
   }
 
+  void _showEventTimeline(BuildContext context, String deviceId) {
+    final state = dfuStateMap[deviceId];
+    if (state == null) {
+      return;
+    }
+
+    showDialog<void>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          // Auto-refresh dialog every 100ms to show new events in real-time
+          Future.delayed(const Duration(milliseconds: 100), () {
+            if (context.mounted) {
+              setDialogState(() {});
+            }
+          });
+
+          final currentState = dfuStateMap[deviceId];
+          if (currentState == null) {
+            return const SizedBox.shrink();
+          }
+
+          final isDfuRunning = currentState.dfuRunning;
+          final events = currentState.events;
+
+          return Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: SizedBox(
+              width: MediaQuery.of(context).size.width * 0.9,
+              height: MediaQuery.of(context).size.height * 0.7,
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade100,
+                      borderRadius:
+                          const BorderRadius.vertical(top: Radius.circular(20)),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'DFU Event Timeline',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              if (isDfuRunning &&
+                                  currentState.progressPercent != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 4),
+                                  child: Text(
+                                    'Progress: ${currentState.progressPercent}%',
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.black54,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () => Navigator.pop(context),
+                          tooltip: 'Close',
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (events.isEmpty)
+                    const Expanded(
+                      child: Center(
+                        child: Text('No events yet...'),
+                      ),
+                    )
+                  else
+                    Expanded(
+                      child: ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: events.length,
+                        itemBuilder: (context, index) {
+                          final event = events[index];
+                          final timeStr =
+                              '${event.timestamp.hour.toString().padLeft(2, '0')}:'
+                              '${event.timestamp.minute.toString().padLeft(2, '0')}:'
+                              '${event.timestamp.second.toString().padLeft(2, '0')}';
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 8),
+                            color: event.isError
+                                ? Colors.red.shade50
+                                : Colors.green.shade50,
+                            child: ListTile(
+                              leading: Icon(
+                                event.isError
+                                    ? Icons.error
+                                    : Icons.check_circle,
+                                color:
+                                    event.isError ? Colors.red : Colors.green,
+                              ),
+                              title: Text(
+                                event.eventName,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              subtitle: Text(event.message),
+                              trailing: Text(
+                                timeStr,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      borderRadius: const BorderRadius.vertical(
+                        bottom: Radius.circular(20),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        if (isDfuRunning)
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: () {
+                                NordicDfu().abortDfu(address: deviceId);
+                                Navigator.pop(context);
+                              },
+                              icon: const Icon(Icons.cancel),
+                              label: const Text('Abort DFU'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.red,
+                                foregroundColor: Colors.white,
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
+                              ),
+                            ),
+                          )
+                        else
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: () => Navigator.pop(context),
+                              icon: const Icon(Icons.close),
+                              label: const Text('Close'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue,
+                                foregroundColor: Colors.white,
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   Widget _deviceItemBuilder(BuildContext context, int index) {
     final result = scanResults[index];
     final deviceId = result.device.remoteId.str;
@@ -170,52 +736,43 @@ class MyAppState extends State<MyApp> {
       scanResult: result,
       onPress: dfuStateMap[deviceId]?.dfuRunning ?? false
           ? () => NordicDfu().abortDfu(address: deviceId)
-          : () => doDfu(deviceId),
+          : () => doDfu(context, deviceId),
+      onRetry: dfuStateMap[deviceId]?.lastError != null &&
+              !(dfuStateMap[deviceId]?.dfuRunning ?? false)
+          ? () => retryDfu(context, deviceId)
+          : null,
+      onShowTimeline: dfuStateMap[deviceId]?.events.isNotEmpty ?? false
+          ? () => _showEventTimeline(context, deviceId)
+          : null,
     );
   }
 }
-
-// class ProgressListenerListener extends DfuProgressListenerAdapter {
-//   @override
-//   void onProgressChanged(
-//     String? deviceAddress,
-//     int? percent,
-//     double? speed,
-//     double? avgSpeed,
-//     int? currentPart,
-//     int? partsTotal,
-//   ) {
-//     super.onProgressChanged(
-//       deviceAddress,
-//       percent,
-//       speed,
-//       avgSpeed,
-//       currentPart,
-//       partsTotal,
-//     );
-//     debugPrint('deviceAddress: $deviceAddress, percent: $percent');
-//   }
-// }
 
 class DeviceItem extends StatelessWidget {
   const DeviceItem({
     required this.scanResult,
     this.onPress,
+    this.onRetry,
+    this.onShowTimeline,
     this.dfuState,
     super.key,
   });
   final ScanResult scanResult;
 
   final VoidCallback? onPress;
+  final VoidCallback? onRetry;
+  final VoidCallback? onShowTimeline;
 
   final ExampleDfuState? dfuState;
 
   String _getDfuButtonText() {
-    final progressText = dfuState?.progressPercent != null
-        ? '\n(${dfuState!.progressPercent}%)'
-        : '';
-    return ((dfuState?.dfuRunning ?? false) ? 'Abort Dfu' : 'Start Dfu') +
-        progressText;
+    if (dfuState?.dfuRunning ?? false) {
+      final progressText = dfuState?.progressPercent != null
+          ? '\n(${dfuState!.progressPercent}%)'
+          : '';
+      return 'Abort DFU$progressText';
+    }
+    return 'Select ZIP\n& Start DFU';
   }
 
   @override
@@ -224,29 +781,103 @@ class DeviceItem extends StatelessWidget {
     if (scanResult.device.platformName.isNotEmpty) {
       name = scanResult.device.platformName;
     }
+
+    final hasError = dfuState?.lastError != null;
+    final hasEvents = dfuState?.events.isNotEmpty ?? false;
+
     return Card(
+      color: hasError ? Colors.red.shade50 : null,
       child: Padding(
         padding: const EdgeInsets.all(8),
-        child: Row(
-          children: <Widget>[
-            const Icon(Icons.bluetooth),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text(name),
-                  Text(scanResult.device.remoteId.str),
-                  Text('RSSI: ${scanResult.rssi}'),
-                ],
-              ),
+        child: Column(
+          children: [
+            Row(
+              children: <Widget>[
+                const Icon(Icons.bluetooth),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        name,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        scanResult.device.remoteId.str,
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                      Text(
+                        'RSSI: ${scanResult.rssi}',
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                      if (dfuState?.progressPercent != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: LinearProgressIndicator(
+                            value: (dfuState!.progressPercent!) / 100,
+                            backgroundColor: Colors.grey.shade300,
+                            valueColor: const AlwaysStoppedAnimation<Color>(
+                              Colors.blue,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextButton(
+                      onPressed: onPress,
+                      child: Text(
+                        _getDfuButtonText(),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    if (onRetry != null)
+                      TextButton.icon(
+                        onPressed: onRetry,
+                        icon: const Icon(Icons.refresh, size: 16),
+                        label: const Text('Retry'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.orange,
+                        ),
+                      ),
+                  ],
+                ),
+              ],
             ),
-            TextButton(
-              onPressed: onPress,
-              child: Text(
-                _getDfuButtonText(),
-                textAlign: TextAlign.center,
+            if (hasEvents)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        dfuState!.events.first.message,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: dfuState!.events.first.isError
+                              ? Colors.red
+                              : Colors.green,
+                          fontStyle: FontStyle.italic,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    TextButton.icon(
+                      onPressed: onShowTimeline,
+                      icon: const Icon(Icons.timeline, size: 16),
+                      label: Text('Timeline (${dfuState!.events.length})'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.blue,
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
           ],
         ),
       ),

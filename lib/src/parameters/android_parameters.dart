@@ -11,6 +11,9 @@ class AndroidParameters {
     this.dataDelay = 400,
     this.numberOfRetries = 10,
     this.rebootTime,
+    this.mbrSize,
+    this.scope,
+    this.currentMtu,
   });
 
   ///Sets whether the progress notification in the status bar should be disabled.
@@ -86,6 +89,18 @@ class AndroidParameters {
   /// rebootTime the reboot time in milliseconds, default 0.
   final int? rebootTime;
 
+  /// Sets the MBR (Master Boot Record) size.
+  /// This is required for updating the MBR on some devices.
+  final int? mbrSize;
+
+  /// Sets the DFU scope (system components vs application).
+  /// Typically used to specify which parts of the firmware should be updated.
+  final int? scope;
+
+  /// Sets the current MTU (Maximum Transmission Unit) size.
+  /// This can optimize the DFU transfer speed based on the negotiated MTU.
+  final int? currentMtu;
+
   /// Converts AndroidSpecialParameter into a json object.
   Map<String, dynamic> toJson() => {
         'disableNotification': disableNotification,
@@ -96,5 +111,8 @@ class AndroidParameters {
         'dataDelay': dataDelay,
         'numberOfRetries': numberOfRetries,
         'rebootTime': rebootTime,
+        'mbrSize': mbrSize,
+        'scope': scope,
+        'currentMtu': currentMtu,
       };
 }

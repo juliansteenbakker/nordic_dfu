@@ -160,7 +160,7 @@ public class NordicDfuPlugin: NSObject, FlutterPlugin, FlutterStreamHandler, Log
         case .validating:
             sink?(["onFirmwareValidating":deviceAddress])
         case .uploading:
-            sink?(["onFirmwareUploading":deviceAddress])
+            sink?(["onDfuProcessStarted":deviceAddress])
         }
     }
 
