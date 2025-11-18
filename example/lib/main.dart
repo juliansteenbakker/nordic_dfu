@@ -63,6 +63,7 @@ class MyApp extends StatefulWidget {
 class MyAppState extends State<MyApp> {
   static const tag = 'nordic_dfu_example:';
   StreamSubscription<ScanResult>? scanSubscription;
+  StreamSubscription<ScanResult>? dfuScanSubscription;
   List<ScanResult> scanResults = <ScanResult>[];
   Map<String, ExampleDfuState> dfuStateMap = {};
   bool get anyDfuRunning => dfuStateMap.values.any((state) => state.dfuRunning);
@@ -236,6 +237,10 @@ class MyAppState extends State<MyApp> {
               'Switching device to DFU mode...',
             );
           });
+          // Start scanning for the DFU device
+          if (string == deviceId) {
+            _startScanForDfuDevice(deviceId);
+          }
         },
         onFirmwareValidating: (string) {
           debugPrint('$tag firmware validating: $string');
@@ -366,6 +371,54 @@ class MyAppState extends State<MyApp> {
     scanSubscription?.cancel();
     scanSubscription = null;
     setState(() => scanSubscription = null);
+  }
+
+  // Scan for the DFU device and set address mapping
+  Future<void> _startScanForDfuDevice(String deviceId) async {
+    debugPrint('$tag Starting scan for DFU device...');
+
+    setState(() {
+      dfuStateMap[deviceId]?.addEvent(
+        'Scanning for DFU',
+        'Looking for device in bootloader mode...',
+      );
+    });
+
+    await dfuScanSubscription?.cancel();
+    await FlutterBluePlus.startScan(timeout: const Duration(seconds: 5));
+
+    dfuScanSubscription = FlutterBluePlus.scanResults.expand((e) => e).listen(
+      (scanResult) {
+        final dfuDevice = scanResult.device;
+        final deviceName = dfuDevice.platformName;
+
+        // Look for DFU device by name (e.g., "DfuTarg", or any name containing "DFU")
+        if (deviceName.toLowerCase().contains('dfu') ||
+            deviceName.toLowerCase() == 'dfutarg') {
+          debugPrint('$tag Found DFU device: $deviceName at ${dfuDevice.remoteId.str}');
+
+          // Set the address mapping
+          NordicDfu().setAddressMapping(dfuDevice.remoteId.str, deviceId);
+
+          setState(() {
+            dfuStateMap[deviceId]?.addEvent(
+              'DFU Device Found',
+              'Mapped ${dfuDevice.remoteId.str} → $deviceId',
+            );
+          });
+
+          // Stop scanning
+          FlutterBluePlus.stopScan();
+          dfuScanSubscription?.cancel();
+        }
+      },
+    );
+
+    // Auto-cleanup after timeout
+    Future.delayed(const Duration(seconds: 5), () {
+      dfuScanSubscription?.cancel();
+      dfuScanSubscription = null;
+    });
   }
 
   @override
