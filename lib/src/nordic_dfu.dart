@@ -27,6 +27,8 @@ class NordicDfu {
   StreamSubscription<void>? _events;
   final Map<String, DfuEventHandler> _eventHandlerMap = {};
 
+  DfuBootloaderAddress? _dfuBootloaderAddress;
+
   void _ensureEventStreamSetup() {
     if (_events != null) return;
 
@@ -68,8 +70,8 @@ class NordicDfu {
       address = value as String;
       values = null;
     }
-
-    final handler = _eventHandlerMap[address];
+    final scanAddress = _dfuBootloaderAddress?.call(address) ?? address;
+    final handler = _eventHandlerMap[scanAddress];
     handler?.dispatchEvent(key, values, address);
   }
 
@@ -113,6 +115,7 @@ class NordicDfu {
     DfuErrorCallback? onError,
     @Deprecated('Use dfuEventHandler.onProgressChanged instead')
     DfuProgressCallback? onProgressChanged,
+        DfuBootloaderAddress? dfuBootloaderAddress,
   }) async {
     _eventHandlerMap[address] = DfuEventHandler(
       onDeviceConnected:
@@ -137,6 +140,8 @@ class NordicDfu {
       onProgressChanged:
           dfuEventHandler?.onProgressChanged ?? onProgressChanged,
     );
+
+    _dfuBootloaderAddress = dfuBootloaderAddress;
 
     // if (dfuEventHandler != null) {
     //   _eventHandlerMap[address] = dfuEventHandler;

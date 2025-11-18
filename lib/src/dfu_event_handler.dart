@@ -31,6 +31,23 @@ typedef DfuProgressCallback = void Function(
   int currentPart,
   int totalParts,
 );
+/// During the firmware update process, the Bluetooth device may switch between normal mode and DFU mode,
+/// resulting in a change to the MAC address.
+/// This callback is used to map the device's current address (which may be the address in the new mode)
+/// to the target address for processing.
+///
+/// [address] - The device address associated with the firmware update progress update,
+/// typically the address in DFU mode.
+///
+/// Return value: The target address after mapping/correction.
+///   Examples:
+///   - If the DFU mode address needs to be converted to the corresponding normal mode address,
+///     return the normal mode address;
+///   - If no address conversion is required (e.g., the target device is already confirmed),
+///     directly return the input [address];
+///   - If filtering is needed based on business rules (e.g., only processing addresses within a specific range),
+///     return the address that meets the rules.
+typedef DfuBootloaderAddress = String Function(String address);
 
 /// A class representing event handlers for a Device Firmware Update (DFU) process.
 ///
