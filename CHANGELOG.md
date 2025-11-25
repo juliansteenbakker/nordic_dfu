@@ -1,5 +1,28 @@
-## NEXT
+## 7.1.0
+New Features:
+* Added address mapping logic to handle address changes during DFU process.
+* Added increment UUID support to example app.
+* [Android] Added mbrSize, scope and currentMtu parameters to callback.
+* [Darwin] Callback can now be set in constructor.
+
+Breaking Changes:
+* [Darwin] Changed onFirmwareUploading to onDfuProcessStarted to match Android implementation.
+
+Bug Fixes:
+* Fixed deprecation warning.
+* Fixed onFirmwareUploading calling wrong event.
+* Fixed function not being awaited.
+* [Android] Fixed missing .zip extension to temp asset file path.
+* Separated DFU logic from Flutter logic.
+
+Other Changes:
 * Made dispose async, due to underlying events.cancel being async.
+* [Android] Updated Nordic DFU Library to version 2.10.1.
+* [Android] Updated Kotlin to version 2.2.21.
+* [Android] Updated Gradle to version 8.13.1.
+* [Android] Updated minSDK and compileSDK.
+* [Darwin] Updated iOS files for latest Flutter version.
+* Improved example app with DFU service selector, address mapping example, and event ordering.
 
 ## 7.0.0
 New Features:
