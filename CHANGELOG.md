@@ -1,4 +1,4 @@
-## NEXT
+## 7.1.0
 New Features:
 * Added address mapping logic to handle address changes during DFU process.
 * Added increment UUID support to example app.
