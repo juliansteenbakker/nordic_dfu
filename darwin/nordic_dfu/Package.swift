@@ -19,7 +19,8 @@ let package = Package(
     targets: [
         .target(
             name: "nordic_dfu",
-            dependencies: [],
+            dependencies: [
+                .product(name: "NordicDFU", package: "NordicDFU")],
             resources: [
                 .process("Resources"),
             ]
