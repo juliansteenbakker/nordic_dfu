@@ -2,14 +2,14 @@ group 'dev.steenbakker.nordicdfu'
 version '1.0-SNAPSHOT'
 
 buildscript {
-    ext.kotlin_version = '2.2.21'
+    ext.kotlin_version = '2.3.10'
     repositories {
         google()
         mavenCentral()
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.13.1'
+        classpath 'com.android.tools.build:gradle:8.13.2'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
@@ -51,6 +51,6 @@ android {
 }
 
 dependencies {
-    implementation 'no.nordicsemi.android:dfu:2.10.1'
+    implementation 'no.nordicsemi.android:dfu:2.11.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }

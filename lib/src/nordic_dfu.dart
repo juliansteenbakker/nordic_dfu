@@ -16,6 +16,7 @@ class NordicDfu {
   factory NordicDfu() => _singleton;
 
   NordicDfu._internal();
+
   static final NordicDfu _singleton = NordicDfu._internal();
 
   static const String _methodChannelName = 'dev.steenbakker.nordic_dfu/method';
@@ -80,6 +81,23 @@ class NordicDfu {
     debugPrint('Error in event stream: $error');
   }
 
+  /// Returns the key to use in `_eventHandlerMap` for a given device address.
+  ///
+  /// - If the address is an original address, returns it directly.
+  /// - If the address is a translated address, returns the original address it maps to.
+  /// - If the address is not in the map, returns the address as-is.
+  String _getHandlerMapKey(String address) {
+    if (_addressMap.containsKey(address)) {
+      return address;
+    } else if (_addressMap.containsValue(address)) {
+      return _addressMap.entries
+          .firstWhere((element) => element.value == address)
+          .key;
+    } else {
+      return address;
+    }
+  }
+
   void _handleSingleEvent(String key, dynamic value) {
     if (value == null) {
       debugPrint('Value is null for key: $key');
@@ -97,10 +115,10 @@ class NordicDfu {
       values = null;
     }
 
-    final translatedAddress = getTranslatedAddress(address);
+    final handlerMapKey = _getHandlerMapKey(address);
 
-    final handler = _eventHandlerMap[translatedAddress];
-    handler?.dispatchEvent(key, values, translatedAddress);
+    final handler = _eventHandlerMap[handlerMapKey];
+    handler?.dispatchEvent(key, values, handlerMapKey);
   }
 
   /// Starts the DFU process.
