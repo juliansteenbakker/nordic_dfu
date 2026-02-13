@@ -1,3 +1,9 @@
+## 7.1.2
+Improvements:
+* [Android] Updated Nordic DFU Library to version 2.11.0. 
+  This update should fix onDeviceConnecting and onDeviceDisconnecting not being called.
+* [Android] Updated Kotlin to version 2.3.10.
+
 ## 7.1.1
 New features:
 * Update address mapping so that it works with both the original address as the changed address.
