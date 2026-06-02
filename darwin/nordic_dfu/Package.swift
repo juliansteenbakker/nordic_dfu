@@ -20,7 +20,7 @@ let package = Package(
         .target(
             name: "nordic_dfu",
             dependencies: [
-                .product(name: "NordicDFU", package: "NordicDFU")],
+                .product(name: "NordicDFU", package: "IOS-DFU-Library")],
             resources: [
                 .process("Resources"),
             ]
