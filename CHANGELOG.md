@@ -1,3 +1,7 @@
+## 7.1.3
+Improvements:
+* [Darwin] Correct package identity for IOS-DFU-Library dependency.
+
 ## 7.1.2
 Improvements:
 * [Android] Updated Nordic DFU Library to version 2.11.0. 
