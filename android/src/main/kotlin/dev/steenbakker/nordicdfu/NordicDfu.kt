@@ -161,11 +161,18 @@ class NordicDfu(private val context: Context, private val callback: DfuCallback)
         }, 200)
     }
 
+    // [FORK] Resolve original address when Buttonless DFU changes the BLE address.
+    // Fall back to the active process that was registered with the original address.
+    private fun resolveAddress(deviceAddress: String): String {
+        if (activeDfuMap.containsKey(deviceAddress)) return deviceAddress
+        return activeDfuMap.values.firstOrNull()?.deviceAddress ?: deviceAddress
+    }
+
     private val dfuProgressListener: DfuProgressListener =
         object : DfuProgressListenerAdapter() {
             override fun onDeviceConnected(deviceAddress: String) {
                 super.onDeviceConnected(deviceAddress)
-                callback.onDeviceConnected(deviceAddress)
+                callback.onDeviceConnected(resolveAddress(deviceAddress))
             }
 
             override fun onError(
@@ -173,57 +180,60 @@ class NordicDfu(private val context: Context, private val callback: DfuCallback)
             ) {
                 super.onError(deviceAddress, error, errorType, message)
                 cancelNotification()
-                callback.onError(deviceAddress, error, errorType, message)
-                activeDfuMap.remove(deviceAddress)
+                val originalAddress = resolveAddress(deviceAddress)
+                callback.onError(originalAddress, error, errorType, message)
+                activeDfuMap.remove(originalAddress)
             }
 
             override fun onDeviceConnecting(deviceAddress: String) {
                 super.onDeviceConnecting(deviceAddress)
-                callback.onDeviceConnecting(deviceAddress)
+                callback.onDeviceConnecting(resolveAddress(deviceAddress))
             }
 
             override fun onDeviceDisconnected(deviceAddress: String) {
                 super.onDeviceDisconnected(deviceAddress)
-                callback.onDeviceDisconnected(deviceAddress)
+                callback.onDeviceDisconnected(resolveAddress(deviceAddress))
             }
 
             override fun onDeviceDisconnecting(deviceAddress: String) {
                 super.onDeviceDisconnecting(deviceAddress)
-                callback.onDeviceDisconnecting(deviceAddress)
+                callback.onDeviceDisconnecting(resolveAddress(deviceAddress))
             }
 
             override fun onDfuAborted(deviceAddress: String) {
                 super.onDfuAborted(deviceAddress)
                 cancelNotification()
-                callback.onDfuAborted(deviceAddress)
-                activeDfuMap.remove(deviceAddress)
+                val originalAddress = resolveAddress(deviceAddress)
+                callback.onDfuAborted(originalAddress)
+                activeDfuMap.remove(originalAddress)
             }
 
             override fun onDfuCompleted(deviceAddress: String) {
                 super.onDfuCompleted(deviceAddress)
                 cancelNotification()
-                callback.onDfuCompleted(deviceAddress)
-                activeDfuMap.remove(deviceAddress)
+                val originalAddress = resolveAddress(deviceAddress)
+                callback.onDfuCompleted(originalAddress)
+                activeDfuMap.remove(originalAddress)
             }
 
             override fun onDfuProcessStarted(deviceAddress: String) {
                 super.onDfuProcessStarted(deviceAddress)
-                callback.onDfuProcessStarted(deviceAddress)
+                callback.onDfuProcessStarted(resolveAddress(deviceAddress))
             }
 
             override fun onDfuProcessStarting(deviceAddress: String) {
                 super.onDfuProcessStarting(deviceAddress)
-                callback.onDfuProcessStarting(deviceAddress)
+                callback.onDfuProcessStarting(resolveAddress(deviceAddress))
             }
 
             override fun onEnablingDfuMode(deviceAddress: String) {
                 super.onEnablingDfuMode(deviceAddress)
-                callback.onEnablingDfuMode(deviceAddress)
+                callback.onEnablingDfuMode(resolveAddress(deviceAddress))
             }
 
             override fun onFirmwareValidating(deviceAddress: String) {
                 super.onFirmwareValidating(deviceAddress)
-                callback.onFirmwareValidating(deviceAddress)
+                callback.onFirmwareValidating(resolveAddress(deviceAddress))
             }
 
             override fun onProgressChanged(
@@ -238,7 +248,7 @@ class NordicDfu(private val context: Context, private val callback: DfuCallback)
                     deviceAddress, percent, speed, avgSpeed, currentPart, partsTotal
                 )
                 callback.onProgressChanged(
-                    deviceAddress, percent, speed, avgSpeed, currentPart, partsTotal
+                    resolveAddress(deviceAddress), percent, speed, avgSpeed, currentPart, partsTotal
                 )
             }
         }
