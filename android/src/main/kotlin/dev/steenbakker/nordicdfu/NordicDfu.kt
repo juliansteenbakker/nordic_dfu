@@ -12,6 +12,7 @@ import no.nordicsemi.android.dfu.DfuProgressListener
 import no.nordicsemi.android.dfu.DfuProgressListenerAdapter
 import no.nordicsemi.android.dfu.DfuServiceInitiator
 import no.nordicsemi.android.dfu.DfuServiceListenerHelper
+import no.nordicsemi.android.dfu.internal.scanner.BootloaderScannerFactory
 
 /**
  * Core Nordic DFU logic handler
@@ -161,11 +162,30 @@ class NordicDfu(private val context: Context, private val callback: DfuCallback)
         }, 200)
     }
 
+    /**
+     * Nordic's buttonless DFU flow may report callbacks using the bootloader address, which is
+     * commonly the original BLE address incremented by one. The active process is keyed by the
+     * original address, so callbacks must use that same canonical address for Flutter result
+     * completion and process cleanup.
+     */
+    private fun resolveOriginalAddress(deviceAddress: String): String {
+        activeDfuMap.keys.firstOrNull {
+            it.equals(deviceAddress, ignoreCase = true)
+        }?.let {
+            return it
+        }
+
+        return activeDfuMap.values.firstOrNull { process ->
+            BootloaderScannerFactory.getIncrementedAddress(process.deviceAddress)
+                .equals(deviceAddress, ignoreCase = true)
+        }?.deviceAddress ?: deviceAddress
+    }
+
     private val dfuProgressListener: DfuProgressListener =
         object : DfuProgressListenerAdapter() {
             override fun onDeviceConnected(deviceAddress: String) {
                 super.onDeviceConnected(deviceAddress)
-                callback.onDeviceConnected(deviceAddress)
+                callback.onDeviceConnected(resolveOriginalAddress(deviceAddress))
             }
 
             override fun onError(
@@ -173,57 +193,60 @@ class NordicDfu(private val context: Context, private val callback: DfuCallback)
             ) {
                 super.onError(deviceAddress, error, errorType, message)
                 cancelNotification()
-                callback.onError(deviceAddress, error, errorType, message)
-                activeDfuMap.remove(deviceAddress)
+                val originalAddress = resolveOriginalAddress(deviceAddress)
+                callback.onError(originalAddress, error, errorType, message)
+                activeDfuMap.remove(originalAddress)
             }
 
             override fun onDeviceConnecting(deviceAddress: String) {
                 super.onDeviceConnecting(deviceAddress)
-                callback.onDeviceConnecting(deviceAddress)
+                callback.onDeviceConnecting(resolveOriginalAddress(deviceAddress))
             }
 
             override fun onDeviceDisconnected(deviceAddress: String) {
                 super.onDeviceDisconnected(deviceAddress)
-                callback.onDeviceDisconnected(deviceAddress)
+                callback.onDeviceDisconnected(resolveOriginalAddress(deviceAddress))
             }
 
             override fun onDeviceDisconnecting(deviceAddress: String) {
                 super.onDeviceDisconnecting(deviceAddress)
-                callback.onDeviceDisconnecting(deviceAddress)
+                callback.onDeviceDisconnecting(resolveOriginalAddress(deviceAddress))
             }
 
             override fun onDfuAborted(deviceAddress: String) {
                 super.onDfuAborted(deviceAddress)
                 cancelNotification()
-                callback.onDfuAborted(deviceAddress)
-                activeDfuMap.remove(deviceAddress)
+                val originalAddress = resolveOriginalAddress(deviceAddress)
+                callback.onDfuAborted(originalAddress)
+                activeDfuMap.remove(originalAddress)
             }
 
             override fun onDfuCompleted(deviceAddress: String) {
                 super.onDfuCompleted(deviceAddress)
                 cancelNotification()
-                callback.onDfuCompleted(deviceAddress)
-                activeDfuMap.remove(deviceAddress)
+                val originalAddress = resolveOriginalAddress(deviceAddress)
+                callback.onDfuCompleted(originalAddress)
+                activeDfuMap.remove(originalAddress)
             }
 
             override fun onDfuProcessStarted(deviceAddress: String) {
                 super.onDfuProcessStarted(deviceAddress)
-                callback.onDfuProcessStarted(deviceAddress)
+                callback.onDfuProcessStarted(resolveOriginalAddress(deviceAddress))
             }
 
             override fun onDfuProcessStarting(deviceAddress: String) {
                 super.onDfuProcessStarting(deviceAddress)
-                callback.onDfuProcessStarting(deviceAddress)
+                callback.onDfuProcessStarting(resolveOriginalAddress(deviceAddress))
             }
 
             override fun onEnablingDfuMode(deviceAddress: String) {
                 super.onEnablingDfuMode(deviceAddress)
-                callback.onEnablingDfuMode(deviceAddress)
+                callback.onEnablingDfuMode(resolveOriginalAddress(deviceAddress))
             }
 
             override fun onFirmwareValidating(deviceAddress: String) {
                 super.onFirmwareValidating(deviceAddress)
-                callback.onFirmwareValidating(deviceAddress)
+                callback.onFirmwareValidating(resolveOriginalAddress(deviceAddress))
             }
 
             override fun onProgressChanged(
@@ -238,7 +261,12 @@ class NordicDfu(private val context: Context, private val callback: DfuCallback)
                     deviceAddress, percent, speed, avgSpeed, currentPart, partsTotal
                 )
                 callback.onProgressChanged(
-                    deviceAddress, percent, speed, avgSpeed, currentPart, partsTotal
+                    resolveOriginalAddress(deviceAddress),
+                    percent,
+                    speed,
+                    avgSpeed,
+                    currentPart,
+                    partsTotal
                 )
             }
         }
