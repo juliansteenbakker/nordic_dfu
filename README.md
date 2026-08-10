@@ -89,6 +89,7 @@ Available from version 7.0.0
 - ✅ Callbacks set in `startDfu`  are called independently for each device.
 - ✅ All active DFU processes can be aborted using the `abortDfu` method without an `address`.
 - ❌ DFU processes cannot be individually aborted using the `abortDfu` method with an `address` due to current limitations in the underlying [Android-DFU-Library](https://github.com/NordicSemiconductor/Android-DFU-Library).
+- ⚠️ Devices with adjacent addresses (`…:46` and `…:47`) should be updated one after another. A device in bootloader mode advertises with its address incremented by one, so the [Android-DFU-Library](https://github.com/NordicSemiconductor/Android-DFU-Library) cannot tell such a pair apart and may report their events against the wrong device. A warning is logged when this is detected.
 
 ## Address Mapping
 
