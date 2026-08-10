@@ -31,7 +31,13 @@ class NordicDfu {
   StreamSubscription<void>? _events;
   final Map<String, DfuEventHandler> _eventHandlerMap = {};
 
-  /// Method to set new entries in the map
+  /// Maps an address a device advertises with in DFU mode back to the address
+  /// the DFU was started with. No longer necessary: every event is already
+  /// reported with the address passed to [startDfu].
+  @Deprecated(
+    'Address changes in DFU mode are handled by the platform implementations. '
+    'This will be removed in a future release.',
+  )
   void setAddressMapping(String originalAddress, String translatedAddress) {
     if (originalAddress.isNotEmpty && translatedAddress.isNotEmpty) {
       _addressMap[originalAddress] = translatedAddress;
@@ -41,17 +47,29 @@ class NordicDfu {
   /// Method to get translated address or return original if not found
   /// Return the translated address if it exists, otherwise return the original address
   /// @param address the address to translate
+  @Deprecated(
+    'Address changes in DFU mode are handled by the platform implementations. '
+    'This will be removed in a future release.',
+  )
   String getTranslatedAddress(String address) {
     return _addressMap[address] ?? address;
   }
 
   /// Method to remove a mapping
   /// @param originalAddress the address to remove
+  @Deprecated(
+    'Address changes in DFU mode are handled by the platform implementations. '
+    'This will be removed in a future release.',
+  )
   void removeAddressMapping(String originalAddress) {
     _addressMap.remove(originalAddress);
   }
 
   /// Method to clear all mappings
+  @Deprecated(
+    'Address changes in DFU mode are handled by the platform implementations. '
+    'This will be removed in a future release.',
+  )
   void clearAddressMappings() {
     _addressMap.clear();
   }
