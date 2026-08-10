@@ -38,9 +38,6 @@ class NordicDfu(private val context: Context, private val callback: DfuCallback)
     /** Every address form of recently finished processes, so late events are not re-attributed. */
     private val recentlyFinished: MutableSet<String> = LinkedHashSet()
 
-    /** Original address of the process that most recently reported a callback. */
-    private var lastReportingAddress: String? = null
-
     private var fallbackListenerRegistered = false
 
     companion object {
@@ -202,7 +199,6 @@ class NordicDfu(private val context: Context, private val callback: DfuCallback)
         activeDfuMap.clear()
         addressAliases.clear()
         recentlyFinished.clear()
-        lastReportingAddress = null
     }
 
     private fun getAvailableDfuServiceClass(): Class<out DfuBaseService>? {
@@ -264,10 +260,10 @@ class NordicDfu(private val context: Context, private val callback: DfuCallback)
 
     /**
      * Resolves an address no scoped listener covers, or null if the event should be dropped. Only
-     * reached for bootloaders using something other than the incremented address. `DfuBaseService`
-     * is an `IntentService`, so at most one DFU executes at a time and the process that reported
-     * last owns these events. The attribution is remembered so it stays stable if another DFU
-     * starts meanwhile.
+     * reached for bootloaders using something other than the incremented address, where the only
+     * unambiguous attribution is a single running DFU. The attribution is remembered, so it stays
+     * stable once another DFU starts; with several already running the event is dropped rather
+     * than risk resolving another device's result.
      */
     private fun resolveUnclaimedAddress(reportedAddress: String): String? {
         if (isClaimedByScopedListener(reportedAddress)) return null
@@ -280,20 +276,20 @@ class NordicDfu(private val context: Context, private val callback: DfuCallback)
 
         if (recentlyFinished.contains(key)) return null
 
-        val inFlight = lastReportingAddress?.takeIf { activeDfuMap.containsKey(it) }
-        if (inFlight == null) {
+        if (activeDfuMap.size != 1) {
             Log.w(
                 TAG,
-                "Dropping DFU callback for unknown address $reportedAddress: no DFU is in progress " +
-                    "to attribute it to."
+                "Dropping DFU callback for unknown address $reportedAddress: ${activeDfuMap.size} " +
+                    "DFUs are running, so it cannot be attributed to one of them."
             )
             return null
         }
 
+        val inFlight = activeDfuMap.keys.first()
         Log.w(
             TAG,
             "DFU callback reported unknown address $reportedAddress. Its bootloader does not use " +
-                "the incremented address, attributing it to the DFU in progress on $inFlight."
+                "the incremented address, attributing it to the DFU on $inFlight."
         )
         addressAliases[key] = inFlight
         return inFlight
@@ -318,10 +314,6 @@ class NordicDfu(private val context: Context, private val callback: DfuCallback)
                 rememberFinished(it)
                 addressAliases.remove(it)
             }
-
-        if (originalAddress.equals(lastReportingAddress, ignoreCase = true)) {
-            lastReportingAddress = null
-        }
     }
 
     private fun rememberFinished(address: String) {
@@ -332,76 +324,22 @@ class NordicDfu(private val context: Context, private val callback: DfuCallback)
         }
     }
 
-    // Shared by the scoped and fallback listeners; [address] is always the original address.
-
-    private fun dispatchDeviceConnected(address: String) {
-        lastReportingAddress = address
-        callback.onDeviceConnected(address)
-    }
-
-    private fun dispatchDeviceConnecting(address: String) {
-        lastReportingAddress = address
-        callback.onDeviceConnecting(address)
-    }
-
-    private fun dispatchDeviceDisconnected(address: String) {
-        lastReportingAddress = address
-        callback.onDeviceDisconnected(address)
-    }
-
-    private fun dispatchDeviceDisconnecting(address: String) {
-        lastReportingAddress = address
-        callback.onDeviceDisconnecting(address)
-    }
-
-    private fun dispatchDfuProcessStarting(address: String) {
-        lastReportingAddress = address
-        callback.onDfuProcessStarting(address)
-    }
-
-    private fun dispatchDfuProcessStarted(address: String) {
-        lastReportingAddress = address
-        callback.onDfuProcessStarted(address)
-    }
-
-    private fun dispatchEnablingDfuMode(address: String) {
-        lastReportingAddress = address
-        callback.onEnablingDfuMode(address)
-    }
-
-    private fun dispatchFirmwareValidating(address: String) {
-        lastReportingAddress = address
-        callback.onFirmwareValidating(address)
-    }
-
-    private fun dispatchProgressChanged(
-        address: String,
-        percent: Int,
-        speed: Float,
-        avgSpeed: Float,
-        currentPart: Int,
-        partsTotal: Int
-    ) {
-        lastReportingAddress = address
-        callback.onProgressChanged(address, percent, speed, avgSpeed, currentPart, partsTotal)
-    }
+    // Terminal events, shared by the scoped and fallback listeners. [address] is always the
+    // address the DFU was started with.
 
     private fun dispatchDfuCompleted(address: String) {
-        lastReportingAddress = address
         cancelNotification()
         callback.onDfuCompleted(address)
         finish(address)
     }
 
     private fun dispatchDfuAborted(address: String) {
-        lastReportingAddress = address
         cancelNotification()
         callback.onDfuAborted(address)
         finish(address)
     }
 
     private fun dispatchError(address: String, error: Int, errorType: Int, message: String) {
-        lastReportingAddress = address
         cancelNotification()
         callback.onError(address, error, errorType, message)
         finish(address)
@@ -413,28 +351,28 @@ class NordicDfu(private val context: Context, private val callback: DfuCallback)
     ) : DfuProgressListenerAdapter() {
 
         override fun onDeviceConnected(deviceAddress: String) =
-            dispatchDeviceConnected(originalAddress)
+            callback.onDeviceConnected(originalAddress)
 
         override fun onDeviceConnecting(deviceAddress: String) =
-            dispatchDeviceConnecting(originalAddress)
+            callback.onDeviceConnecting(originalAddress)
 
         override fun onDeviceDisconnected(deviceAddress: String) =
-            dispatchDeviceDisconnected(originalAddress)
+            callback.onDeviceDisconnected(originalAddress)
 
         override fun onDeviceDisconnecting(deviceAddress: String) =
-            dispatchDeviceDisconnecting(originalAddress)
+            callback.onDeviceDisconnecting(originalAddress)
 
         override fun onDfuProcessStarting(deviceAddress: String) =
-            dispatchDfuProcessStarting(originalAddress)
+            callback.onDfuProcessStarting(originalAddress)
 
         override fun onDfuProcessStarted(deviceAddress: String) =
-            dispatchDfuProcessStarted(originalAddress)
+            callback.onDfuProcessStarted(originalAddress)
 
         override fun onEnablingDfuMode(deviceAddress: String) =
-            dispatchEnablingDfuMode(originalAddress)
+            callback.onEnablingDfuMode(originalAddress)
 
         override fun onFirmwareValidating(deviceAddress: String) =
-            dispatchFirmwareValidating(originalAddress)
+            callback.onFirmwareValidating(originalAddress)
 
         override fun onDfuCompleted(deviceAddress: String) =
             dispatchDfuCompleted(originalAddress)
@@ -453,7 +391,7 @@ class NordicDfu(private val context: Context, private val callback: DfuCallback)
             avgSpeed: Float,
             currentPart: Int,
             partsTotal: Int
-        ) = dispatchProgressChanged(
+        ) = callback.onProgressChanged(
             originalAddress, percent, speed, avgSpeed, currentPart, partsTotal
         )
     }
@@ -465,35 +403,35 @@ class NordicDfu(private val context: Context, private val callback: DfuCallback)
     private val fallbackListener: DfuProgressListener = object : DfuProgressListenerAdapter() {
 
         override fun onDeviceConnected(deviceAddress: String) {
-            resolveUnclaimedAddress(deviceAddress)?.let { dispatchDeviceConnected(it) }
+            resolveUnclaimedAddress(deviceAddress)?.let { callback.onDeviceConnected(it) }
         }
 
         override fun onDeviceConnecting(deviceAddress: String) {
-            resolveUnclaimedAddress(deviceAddress)?.let { dispatchDeviceConnecting(it) }
+            resolveUnclaimedAddress(deviceAddress)?.let { callback.onDeviceConnecting(it) }
         }
 
         override fun onDeviceDisconnected(deviceAddress: String) {
-            resolveUnclaimedAddress(deviceAddress)?.let { dispatchDeviceDisconnected(it) }
+            resolveUnclaimedAddress(deviceAddress)?.let { callback.onDeviceDisconnected(it) }
         }
 
         override fun onDeviceDisconnecting(deviceAddress: String) {
-            resolveUnclaimedAddress(deviceAddress)?.let { dispatchDeviceDisconnecting(it) }
+            resolveUnclaimedAddress(deviceAddress)?.let { callback.onDeviceDisconnecting(it) }
         }
 
         override fun onDfuProcessStarting(deviceAddress: String) {
-            resolveUnclaimedAddress(deviceAddress)?.let { dispatchDfuProcessStarting(it) }
+            resolveUnclaimedAddress(deviceAddress)?.let { callback.onDfuProcessStarting(it) }
         }
 
         override fun onDfuProcessStarted(deviceAddress: String) {
-            resolveUnclaimedAddress(deviceAddress)?.let { dispatchDfuProcessStarted(it) }
+            resolveUnclaimedAddress(deviceAddress)?.let { callback.onDfuProcessStarted(it) }
         }
 
         override fun onEnablingDfuMode(deviceAddress: String) {
-            resolveUnclaimedAddress(deviceAddress)?.let { dispatchEnablingDfuMode(it) }
+            resolveUnclaimedAddress(deviceAddress)?.let { callback.onEnablingDfuMode(it) }
         }
 
         override fun onFirmwareValidating(deviceAddress: String) {
-            resolveUnclaimedAddress(deviceAddress)?.let { dispatchFirmwareValidating(it) }
+            resolveUnclaimedAddress(deviceAddress)?.let { callback.onFirmwareValidating(it) }
         }
 
         override fun onDfuCompleted(deviceAddress: String) {
@@ -521,7 +459,7 @@ class NordicDfu(private val context: Context, private val callback: DfuCallback)
             partsTotal: Int
         ) {
             resolveUnclaimedAddress(deviceAddress)?.let {
-                dispatchProgressChanged(it, percent, speed, avgSpeed, currentPart, partsTotal)
+                callback.onProgressChanged(it, percent, speed, avgSpeed, currentPart, partsTotal)
             }
         }
     }
