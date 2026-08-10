@@ -51,3 +51,16 @@ updates:
     commit-message:
       prefix: chore
       include: scope
+
+  # Directory must hold Package.swift. Note that the CocoaPods pin on
+  # NordicDFU in darwin/nordic_dfu.podspec is not covered: Dependabot has no
+  # CocoaPods support, so that one has to be bumped by hand to match.
+  - package-ecosystem: swift
+    directory: /darwin/nordic_dfu
+    schedule:
+      interval: weekly
+    reviewers:
+      - juliansteenbakker
+    commit-message:
+      prefix: chore
+      include: scope
