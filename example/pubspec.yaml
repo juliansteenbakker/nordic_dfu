@@ -13,7 +13,7 @@ dependencies:
   flutter_blue_plus: ^1.32.4
   nordic_dfu:
     path: ../
-  permission_handler: ^11.0.0
+  permission_handler: ^13.0.0
 
 dev_dependencies:
   flutter_test:
