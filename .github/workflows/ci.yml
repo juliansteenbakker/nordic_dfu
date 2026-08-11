@@ -37,8 +37,8 @@ jobs:
         include:
           # Minimum supported Flutter version for the plugin. The example app
           # requires a newer Flutter than the plugin does, so it is skipped here.
-          - name: "flutter-3.7"
-            flutter-version: "3.7.x"
+          - name: "flutter-3.10"
+            flutter-version: "3.10.x"
             pub-command: "get --no-example"
             analyze-paths: "lib"
           # Latest stable, which analyzes the plugin and the example app.
