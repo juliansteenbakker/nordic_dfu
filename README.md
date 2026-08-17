@@ -88,9 +88,17 @@ Available from version 7.0.0
 - ✅ Callbacks set in `startDfu`  are called independently for each device.
 - ✅ All active DFU processes can be aborted using the `abortDfu` method without an `address`.
 - ❌ DFU processes cannot be individually aborted using the `abortDfu` method with an `address` due to current limitations in the underlying [Android-DFU-Library](https://github.com/NordicSemiconductor/Android-DFU-Library).
+- ⚠️ Devices with adjacent addresses (`…:46` and `…:47`) should be updated one after another. A device in bootloader mode advertises with its address incremented by one, so the [Android-DFU-Library](https://github.com/NordicSemiconductor/Android-DFU-Library) cannot tell such a pair apart and may report their events against the wrong device. A warning is logged when this is detected.
 
 ## Address Mapping
-The Nordic DFU library now includes an address mapping feature to track devices during firmware updates. [Read the full documentation](./ADDRESS_MAPPING.md) to learn how this improves reliability when devices change MAC addresses in DFU mode.
+
+A device performing a buttonless update reboots into its bootloader, which commonly advertises with a
+different BLE address (usually the original one, last byte incremented). The plugin handles this: every
+event is reported with the address you passed to `startDfu`, on every platform, for the whole update.
+
+`setAddressMapping`, `getTranslatedAddress`, `removeAddressMapping` and `clearAddressMappings` are
+therefore deprecated and will be removed in a future release. Delete your calls to them, along with any
+bootloader scanning that existed only to feed them — no replacement is needed.
 
 ## Resources
 

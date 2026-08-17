@@ -65,7 +65,6 @@ class MyApp extends StatefulWidget {
 class MyAppState extends State<MyApp> {
   static const tag = 'nordic_dfu_example:';
   StreamSubscription<ScanResult>? scanSubscription;
-  StreamSubscription<ScanResult>? dfuScanSubscription;
   List<ScanResult> scanResults = <ScanResult>[];
   Map<String, ExampleDfuState> dfuStateMap = {};
   bool get anyDfuRunning => dfuStateMap.values.any((state) => state.dfuRunning);
@@ -256,10 +255,6 @@ class MyAppState extends State<MyApp> {
               'Switching device to DFU mode...',
             );
           });
-          // Start scanning for the DFU device
-          if (string == deviceId) {
-            unawaited(_startScanForDfuDevice(deviceId));
-          }
         },
         onFirmwareValidating: (string) {
           debugPrint('$tag firmware validating: $string');
@@ -393,88 +388,6 @@ class MyAppState extends State<MyApp> {
     unawaited(scanSubscription?.cancel());
     scanSubscription = null;
     setState(() => scanSubscription = null);
-  }
-
-  // Scan for the DFU device and set address mapping
-  Future<void> _startScanForDfuDevice(String deviceId) async {
-    debugPrint('$tag Starting scan for DFU device...');
-
-    // Calculate the expected DFU address (original + 1)
-    final expectedDfuAddress = _incrementMacAddress(deviceId);
-    debugPrint('$tag Expected DFU address: $expectedDfuAddress');
-
-    setState(() {
-      dfuStateMap[deviceId]?.addEvent(
-        'Scanning for DFU',
-        'Looking for device in bootloader mode...',
-      );
-    });
-
-    await dfuScanSubscription?.cancel();
-    await FlutterBluePlus.startScan(timeout: const Duration(seconds: 5));
-
-    dfuScanSubscription = FlutterBluePlus.scanResults.expand((e) => e).listen((
-      scanResult,
-    ) {
-      final dfuDevice = scanResult.device;
-      final deviceName = dfuDevice.platformName;
-      final dfuAddress = dfuDevice.remoteId.str;
-
-      // Check if this is the DFU device by:
-      // 1. Name contains "dfu" or is "DfuTarg"
-      // 2. Address matches the incremented address (original + 1)
-      final matchesByName =
-          deviceName.toLowerCase().contains('dfu') ||
-          deviceName.toLowerCase() == 'dfutarg';
-      final matchesByAddress =
-          dfuAddress.toUpperCase() == expectedDfuAddress.toUpperCase();
-
-      if (matchesByName || matchesByAddress) {
-        final matchReason = matchesByName && matchesByAddress
-            ? 'name and address'
-            : matchesByName
-            ? 'name'
-            : 'address';
-        debugPrint(
-          '$tag Found DFU device by $matchReason: $deviceName at $dfuAddress',
-        );
-
-        // Set the address mapping
-        NordicDfu().setAddressMapping(dfuAddress, deviceId);
-
-        setState(() {
-          dfuStateMap[deviceId]?.addEvent(
-            'DFU Device Found',
-            'Mapped $dfuAddress → $deviceId (by $matchReason)',
-          );
-        });
-
-        // Stop scanning
-        unawaited(FlutterBluePlus.stopScan());
-        unawaited(dfuScanSubscription?.cancel());
-      }
-    });
-
-    // Auto-cleanup after timeout
-    Future.delayed(const Duration(seconds: 5), () {
-      unawaited(dfuScanSubscription?.cancel());
-      dfuScanSubscription = null;
-    });
-  }
-
-  // Helper to increment MAC address by 1 (common DFU pattern)
-  String _incrementMacAddress(String address) {
-    final bytes = address
-        .split(':')
-        .map((e) => int.parse(e, radix: 16))
-        .toList();
-
-    // Increment the last byte
-    bytes[bytes.length - 1] = (bytes[bytes.length - 1] + 1) % 256;
-
-    return bytes
-        .map((e) => e.toRadixString(16).toUpperCase().padLeft(2, '0'))
-        .join(':');
   }
 
   @override

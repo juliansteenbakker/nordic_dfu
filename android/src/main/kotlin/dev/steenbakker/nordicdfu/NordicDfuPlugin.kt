@@ -38,8 +38,11 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHan
     }
 
     override fun onDetachedFromEngine(binding: FlutterPluginBinding) {
+        // Unregisters the progress listeners, which the DFU library holds statically.
+        nordicDfu?.dispose()
         nordicDfu = null
         mContext = null
+        pendingResults.clear()
         methodChannel = null
         eventChannel = null
     }
