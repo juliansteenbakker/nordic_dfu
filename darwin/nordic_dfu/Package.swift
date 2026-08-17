@@ -14,7 +14,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/NordicSemiconductor/IOS-DFU-Library.git",
-                 .upToNextMinor(from: "4.16.0"))
+                 .upToNextMinor(from: "4.17.0"))
     ],
     targets: [
         .target(
