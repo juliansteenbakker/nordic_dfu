@@ -3,7 +3,8 @@ description: Demonstrates how to use the nordic_dfu plugin.
 publish_to: 'none'
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'
+  sdk: ^3.6.0
+  flutter: ">=3.27.0"
 
 dependencies:
   collection: ^1.19.0
@@ -22,7 +23,3 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-
-#  # To add assets to your application, add an assets section, like this:
-#  assets:
-#    - assets/file.zip
