@@ -64,7 +64,18 @@ class NordicDfu(private val context: Context, private val callback: DfuCallback)
      * Start a DFU process with the given configuration
      * @return true if started successfully, false otherwise
      */
-    fun startDfu(config: DfuConfig): Result<Unit> {
+    fun startDfu(config: DfuConfig): Result<Unit> = runCatching {
+        // The DFU library throws on a malformed address, and starting the service can fail too.
+        // Both are reported through the returned Result, so no exception reaches the method channel.
+        try {
+            start(config)
+        } catch (throwable: Throwable) {
+            finish(config.address)
+            throw throwable
+        }
+    }
+
+    private fun start(config: DfuConfig) {
         val starter = DfuServiceInitiator(config.address).setZip(config.filePath)
 
         // Configure DFU service initiator
@@ -125,7 +136,7 @@ class NordicDfu(private val context: Context, private val callback: DfuCallback)
 
         // Get available DFU service class
         val serviceClass = getAvailableDfuServiceClass()
-            ?: return Result.failure(Exception("No available DFU service slots"))
+            ?: throw IllegalStateException("No available DFU service slots")
 
         // Start DFU service
         val controller = starter.start(context, serviceClass)
@@ -136,8 +147,6 @@ class NordicDfu(private val context: Context, private val callback: DfuCallback)
             controller = controller,
             serviceClass = serviceClass
         )
-
-        return Result.success(Unit)
     }
 
     /**

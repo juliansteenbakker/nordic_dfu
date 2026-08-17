@@ -8,6 +8,7 @@ import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
+import java.io.File
 import java.util.*
 
 /**
@@ -26,6 +27,9 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHan
     // Track pending results for each device address
     private val pendingResults: MutableMap<String, MethodChannel.Result> = mutableMapOf()
 
+    // Track the temporary copies made for assets, so they can be deleted once the DFU ends
+    private val tempFirmwareFiles: MutableMap<String, File> = mutableMapOf()
+
     override fun onAttachedToEngine(binding: FlutterPluginBinding) {
         mContext = binding.applicationContext
         nordicDfu = NordicDfu(binding.applicationContext, this)
@@ -43,6 +47,8 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHan
         nordicDfu = null
         mContext = null
         pendingResults.clear()
+        tempFirmwareFiles.values.forEach { it.delete() }
+        tempFirmwareFiles.clear()
         methodChannel = null
         eventChannel = null
     }
@@ -88,24 +94,29 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHan
 
         if (fileInAsset == null) fileInAsset = false
         if (address == null || filePath == null) {
-            result.error("Abnormal parameter", "address and filePath are required", null)
+            result.error("ABNORMAL_PARAMETER", "address and filePath are required", null)
             return
         }
 
         // Handle asset files
+        var tempFirmwareFile: File? = null
         if (fileInAsset) {
             val loader = FlutterInjector.instance().flutterLoader()
-            filePath = loader.getLookupKeyForAsset(filePath)
-            val tempFileName =
-                PathUtils.getExternalAppCachePath(mContext!!) + UUID.randomUUID().toString() + ".zip"
-            // copy asset file to temp path
-            if (!ResourceUtils.copyFileFromAssets(filePath, tempFileName, mContext!!)) {
-                result.error("File Error", "File not found!", filePath)
+            val assetKey = loader.getLookupKeyForAsset(filePath)
+            // The DFU library needs a real file, and a `.zip` extension, so copy the asset into the
+            // internal cache directory. That directory is always available, unlike external cache.
+            val tempFile = File(mContext!!.cacheDir, UUID.randomUUID().toString() + ".zip")
+            if (!ResourceUtils.copyFileFromAssets(assetKey, tempFile.absolutePath, mContext!!)) {
+                result.error("FILE_NOT_FOUND", "Asset not found: $filePath", assetKey)
                 return
             }
 
             // now, the path is an absolute path, and can pass it to nordic dfu library
-            filePath = tempFileName
+            filePath = tempFile.absolutePath
+            tempFirmwareFile = tempFile
+        } else if (!File(filePath).exists()) {
+            result.error("FILE_NOT_FOUND", "Firmware file not found", filePath)
+            return
         }
 
         // Create DFU configuration
@@ -131,11 +142,13 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHan
 
         // Store pending result for this address
         pendingResults[address] = result
+        tempFirmwareFile?.let { tempFirmwareFiles[address] = it }
 
         // Start DFU
         nordicDfu?.startDfu(config)?.onFailure { error ->
             result.error("DFU_START_ERROR", error.message, null)
             pendingResults.remove(address)
+            deleteTempFirmwareFile(address)
         }
     }
 
@@ -224,12 +237,14 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHan
             "Address: $deviceAddress, Error Type: $errorType"
         )
         pendingResults.remove(deviceAddress)
+        deleteTempFirmwareFile(deviceAddress)
     }
 
     override fun onDfuCompleted(deviceAddress: String) {
         sink?.success(mapOf("onDfuCompleted" to deviceAddress))
         pendingResults[deviceAddress]?.success(deviceAddress)
         pendingResults.remove(deviceAddress)
+        deleteTempFirmwareFile(deviceAddress)
     }
 
     override fun onDfuAborted(deviceAddress: String) {
@@ -238,5 +253,11 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHan
             "DFU_ABORTED", "DFU ABORTED by user", "device address: $deviceAddress"
         )
         pendingResults.remove(deviceAddress)
+        deleteTempFirmwareFile(deviceAddress)
+    }
+
+    // Removes the temporary copy made for an asset, once the DFU it was made for has ended.
+    private fun deleteTempFirmwareFile(deviceAddress: String) {
+        tempFirmwareFiles.remove(deviceAddress)?.delete()
     }
 }
