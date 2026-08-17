@@ -591,162 +591,163 @@ class MyAppState extends State<MyApp> {
             final isDfuRunning = currentState.dfuRunning;
             final events = currentState.events;
 
-          return Dialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: SizedBox(
-              width: MediaQuery.of(context).size.width * 0.9,
-              height: MediaQuery.of(context).size.height * 0.7,
-              child: Column(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.shade100,
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(20),
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: SizedBox(
+                width: MediaQuery.of(context).size.width * 0.9,
+                height: MediaQuery.of(context).size.height * 0.7,
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.shade100,
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(20),
+                        ),
                       ),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'DFU Event Timeline',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              if (isDfuRunning &&
-                                  currentState.progressPercent != null)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 4),
-                                  child: Text(
-                                    'Progress: ${currentState.progressPercent}%',
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.black54,
-                                    ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'DFU Event Timeline',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
-                            ],
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.close),
-                          onPressed: () => Navigator.pop(context),
-                          tooltip: 'Close',
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (events.isEmpty)
-                    const Expanded(
-                      child: Center(child: Text('No events yet...')),
-                    )
-                  else
-                    Expanded(
-                      child: ListView.builder(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: events.length,
-                        itemBuilder: (context, index) {
-                          final event = events[index];
-                          final timeStr =
-                              '${event.timestamp.hour.toString().padLeft(2, '0')}:'
-                              '${event.timestamp.minute.toString().padLeft(2, '0')}:'
-                              '${event.timestamp.second.toString().padLeft(2, '0')}';
-                          return Card(
-                            margin: const EdgeInsets.only(bottom: 8),
-                            color: event.isError
-                                ? Colors.red.shade50
-                                : Colors.green.shade50,
-                            child: ListTile(
-                              leading: Icon(
-                                event.isError
-                                    ? Icons.error
-                                    : Icons.check_circle,
-                                color: event.isError
-                                    ? Colors.red
-                                    : Colors.green,
-                              ),
-                              title: Text(
-                                event.eventName,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              subtitle: Text(event.message),
-                              trailing: Text(
-                                timeStr,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
-                      borderRadius: const BorderRadius.vertical(
-                        bottom: Radius.circular(20),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        if (isDfuRunning)
-                          Expanded(
-                            child: ElevatedButton.icon(
-                              onPressed: () {
-                                unawaited(
-                                  NordicDfu().abortDfu(address: deviceId),
-                                );
-                                Navigator.pop(context);
-                              },
-                              icon: const Icon(Icons.cancel),
-                              label: const Text('Abort DFU'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.red,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 12,
-                                ),
-                              ),
-                            ),
-                          )
-                        else
-                          Expanded(
-                            child: ElevatedButton.icon(
-                              onPressed: () => Navigator.pop(context),
-                              icon: const Icon(Icons.close),
-                              label: const Text('Close'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 12,
-                                ),
-                              ),
+                                if (isDfuRunning &&
+                                    currentState.progressPercent != null)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 4),
+                                    child: Text(
+                                      'Progress: ${currentState.progressPercent}%',
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.black54,
+                                      ),
+                                    ),
+                                  ),
+                              ],
                             ),
                           ),
-                      ],
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () => Navigator.pop(context),
+                            tooltip: 'Close',
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                    if (events.isEmpty)
+                      const Expanded(
+                        child: Center(child: Text('No events yet...')),
+                      )
+                    else
+                      Expanded(
+                        child: ListView.builder(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: events.length,
+                          itemBuilder: (context, index) {
+                            final event = events[index];
+                            final timeStr =
+                                '${event.timestamp.hour.toString().padLeft(2, '0')}:'
+                                '${event.timestamp.minute.toString().padLeft(2, '0')}:'
+                                '${event.timestamp.second.toString().padLeft(2, '0')}';
+                            return Card(
+                              margin: const EdgeInsets.only(bottom: 8),
+                              color: event.isError
+                                  ? Colors.red.shade50
+                                  : Colors.green.shade50,
+                              child: ListTile(
+                                leading: Icon(
+                                  event.isError
+                                      ? Icons.error
+                                      : Icons.check_circle,
+                                  color: event.isError
+                                      ? Colors.red
+                                      : Colors.green,
+                                ),
+                                title: Text(
+                                  event.eventName,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                subtitle: Text(event.message),
+                                trailing: Text(
+                                  timeStr,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: const BorderRadius.vertical(
+                          bottom: Radius.circular(20),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          if (isDfuRunning)
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                onPressed: () {
+                                  unawaited(
+                                    NordicDfu().abortDfu(address: deviceId),
+                                  );
+                                  Navigator.pop(context);
+                                },
+                                icon: const Icon(Icons.cancel),
+                                label: const Text('Abort DFU'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.red,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 12,
+                                  ),
+                                ),
+                              ),
+                            )
+                          else
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                onPressed: () => Navigator.pop(context),
+                                icon: const Icon(Icons.close),
+                                label: const Text('Close'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.blue,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 12,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
