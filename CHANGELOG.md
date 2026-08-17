@@ -2,6 +2,42 @@
 Improvements:
 * [Darwin] Correct package identity for IOS-DFU-Library dependency.
 
+## [7.2.0](https://github.com/juliansteenbakker/nordic_dfu/compare/nordic_dfu-v7.1.3...nordic_dfu-v7.2.0) (2026-08-17)
+
+
+### Features
+
+* add address mapping logic ([eaac0c4](https://github.com/juliansteenbakker/nordic_dfu/commit/eaac0c4738c740c452d946be28df723878e01fb5))
+* add address mapping logic document and link it in the readma page ([3119ef4](https://github.com/juliansteenbakker/nordic_dfu/commit/3119ef43d5d09ce9c051b7a9da83b53f01cbc619))
+* add increment uuid support to example app ([aa021fd](https://github.com/juliansteenbakker/nordic_dfu/commit/aa021fd34d9b06c3e1c212d3b983985e133ddaea))
+* add macos example ([1c04d7a](https://github.com/juliansteenbakker/nordic_dfu/commit/1c04d7a1bc44a696a85017e44fb78dfa19740eda))
+* **android:** support for agp 9 ([f64f0d7](https://github.com/juliansteenbakker/nordic_dfu/commit/f64f0d770cf9251c70d1556f2340f71567dfb40b))
+* **android:** support for agp 9 ([42628e2](https://github.com/juliansteenbakker/nordic_dfu/commit/42628e2780691eeca5f3dbd7d5aa6d2e31ee10b3))
+* DFU Address Mapping Feature Implementation ([46a6a05](https://github.com/juliansteenbakker/nordic_dfu/commit/46a6a059bd98c49a42a175c232a1c238064a56f8))
+
+
+### Bug Fixes
+
+* address mapping patch ([f7c301e](https://github.com/juliansteenbakker/nordic_dfu/commit/f7c301ed5728cbe04cac3276d843c14ba219c237))
+* **android:** add missing .zip extension to temp asset file path ([569c504](https://github.com/juliansteenbakker/nordic_dfu/commit/569c5042667cb8c6d80af7521523f7a9b9d9c65f))
+* **android:** add missing .zip extension to temp asset file path ([bf27b43](https://github.com/juliansteenbakker/nordic_dfu/commit/bf27b43dd0b2b23a5fa4f07a3ca7c93de6440e48))
+* **android:** remove obsolete jetifier & raise gradle heap ([725dfac](https://github.com/juliansteenbakker/nordic_dfu/commit/725dfacdd12b931d0434929b2aaf6aa7e7a39e68))
+* **android:** resolve original device address for DFU callbacks ([#283](https://github.com/juliansteenbakker/nordic_dfu/issues/283)) ([e3ee1d1](https://github.com/juliansteenbakker/nordic_dfu/commit/e3ee1d150130269c111412556a64163887a45fd4))
+* callbacks ([90df63b](https://github.com/juliansteenbakker/nordic_dfu/commit/90df63b772eef386f25d65a006874da7e5f9945c))
+* deprecation warning ([8431c42](https://github.com/juliansteenbakker/nordic_dfu/commit/8431c4289b3b080d10a8617a9c5bbd8e0f198d83))
+* **docs:** Fix broken README links ([4e09fab](https://github.com/juliansteenbakker/nordic_dfu/commit/4e09faba292ca772e1c5e300fb65a444c1ba9354))
+* **docs:** Fix broken README links ([51ce2aa](https://github.com/juliansteenbakker/nordic_dfu/commit/51ce2aa823444dd4b14225002d9efbeadae4fe38))
+* function not being awaited ([35c350b](https://github.com/juliansteenbakker/nordic_dfu/commit/35c350b5e480c4c23073e45339bb6316741a0ab4))
+* onFirmwareUploading calling wrong event ([3659ea9](https://github.com/juliansteenbakker/nordic_dfu/commit/3659ea9118251fee53053a5f4bab93198f7fa29f))
+* separate dfu logic from flutter logic ([8c54690](https://github.com/juliansteenbakker/nordic_dfu/commit/8c546902985b43678ee36481f13b57efb7359b70))
+* **spm:** correct package identity for IOS-DFU-Library dependency ([462eeaf](https://github.com/juliansteenbakker/nordic_dfu/commit/462eeaf9282891a3bfe3372e2734e1118e87829b))
+* **spm:** correct package identity for IOS-DFU-Library dependency ([39d360a](https://github.com/juliansteenbakker/nordic_dfu/commit/39d360a81f51160373dfa946894ff0ecfa7dbf5b))
+
+
+### Reverts
+
+* fix dfu not working on android ([27a59d2](https://github.com/juliansteenbakker/nordic_dfu/commit/27a59d2badc06b212506b5636dc3fc24ecc47e27))
+
 ## 7.1.2
 Improvements:
 * [Android] Updated Nordic DFU Library to version 2.11.0. 
@@ -212,22 +248,3 @@ New Features:
 ## 0.0.1
 
 * Init the package.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
