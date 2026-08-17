@@ -148,7 +148,7 @@ event is reported with the address you passed to `startDfu`, on every platform, 
 
 `setAddressMapping`, `getTranslatedAddress`, `removeAddressMapping` and `clearAddressMappings` are
 therefore deprecated and will be removed in a future release. Delete your calls to them, along with any
-bootloader scanning that existed only to feed them — no replacement is needed.
+bootloader scanning that existed only to feed them, no replacement is needed.
 
 ## Resources
 
