@@ -258,7 +258,7 @@ class MyAppState extends State<MyApp> {
           });
           // Start scanning for the DFU device
           if (string == deviceId) {
-            _startScanForDfuDevice(deviceId);
+            unawaited(_startScanForDfuDevice(deviceId));
           }
         },
         onFirmwareValidating: (string) {
@@ -270,6 +270,8 @@ class MyAppState extends State<MyApp> {
             );
           });
         },
+        // The example intentionally exercises the deprecated callback so the
+        // migration path stays covered until it is removed.
         // ignore: deprecated_member_use
         onFirmwareUploading: (string) {
           debugPrint('$tag firmware uploading: $string');
@@ -328,7 +330,7 @@ class MyAppState extends State<MyApp> {
       setState(() {
         dfuStateMap[deviceId]?.dfuRunning = false;
       });
-    } catch (e) {
+    } on Object catch (e) {
       final errorMsg = e.toString();
       setState(() {
         dfuStateMap[deviceId]?.dfuRunning = false;
@@ -387,8 +389,8 @@ class MyAppState extends State<MyApp> {
   }
 
   void stopScan() {
-    FlutterBluePlus.stopScan();
-    scanSubscription?.cancel();
+    unawaited(FlutterBluePlus.stopScan());
+    unawaited(scanSubscription?.cancel());
     scanSubscription = null;
     setState(() => scanSubscription = null);
   }
@@ -448,14 +450,14 @@ class MyAppState extends State<MyApp> {
         });
 
         // Stop scanning
-        FlutterBluePlus.stopScan();
-        dfuScanSubscription?.cancel();
+        unawaited(FlutterBluePlus.stopScan());
+        unawaited(dfuScanSubscription?.cancel());
       }
     });
 
     // Auto-cleanup after timeout
     Future.delayed(const Duration(seconds: 5), () {
-      dfuScanSubscription?.cancel();
+      unawaited(dfuScanSubscription?.cancel());
       dfuScanSubscription = null;
     });
   }
@@ -503,7 +505,7 @@ class MyAppState extends State<MyApp> {
                 // Restart scan if currently scanning
                 if (isScanning) {
                   stopScan();
-                  startScan();
+                  unawaited(startScan());
                 }
               },
               itemBuilder: (context) => [
@@ -569,24 +571,25 @@ class MyAppState extends State<MyApp> {
       return;
     }
 
-    showDialog<void>(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) {
-          // Auto-refresh dialog every 100ms to show new events in real-time
-          Future.delayed(const Duration(milliseconds: 100), () {
-            if (context.mounted) {
-              setDialogState(() {});
+    unawaited(
+      showDialog<void>(
+        context: context,
+        builder: (context) => StatefulBuilder(
+          builder: (context, setDialogState) {
+            // Auto-refresh dialog every 100ms to show new events in real-time
+            Future.delayed(const Duration(milliseconds: 100), () {
+              if (context.mounted) {
+                setDialogState(() {});
+              }
+            });
+
+            final currentState = dfuStateMap[deviceId];
+            if (currentState == null) {
+              return const SizedBox.shrink();
             }
-          });
 
-          final currentState = dfuStateMap[deviceId];
-          if (currentState == null) {
-            return const SizedBox.shrink();
-          }
-
-          final isDfuRunning = currentState.dfuRunning;
-          final events = currentState.events;
+            final isDfuRunning = currentState.dfuRunning;
+            final events = currentState.events;
 
           return Dialog(
             shape: RoundedRectangleBorder(
@@ -705,7 +708,9 @@ class MyAppState extends State<MyApp> {
                           Expanded(
                             child: ElevatedButton.icon(
                               onPressed: () {
-                                NordicDfu().abortDfu(address: deviceId);
+                                unawaited(
+                                  NordicDfu().abortDfu(address: deviceId),
+                                );
                                 Navigator.pop(context);
                               },
                               icon: const Icon(Icons.cancel),
