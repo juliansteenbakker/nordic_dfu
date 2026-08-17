@@ -3,3 +3,11 @@ analyzer:
   errors:
     lines_longer_than_80_chars: ignore
     public_member_api_docs: ignore
+  exclude:
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**
