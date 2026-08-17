@@ -1,7 +1,6 @@
 # nordic_dfu
 [![style: very good analysis](https://img.shields.io/badge/style-very_good_analysis-B22C89.svg)](https://pub.dev/packages/very_good_analysis)
 [![pub package](https://img.shields.io/pub/v/nordic_dfu.svg)](https://pub.dev/packages/nordic_dfu)
-[![mobile_scanner](https://github.com/juliansteenbakker/nordic_dfu/actions/workflows/flutter_format.yml/badge.svg)](https://github.com/juliansteenbakker/nordic_dfu/actions/workflows/flutter_format.yml)
 [![GitHub Sponsors](https://img.shields.io/github/sponsors/juliansteenbakker)](https://github.com/sponsors/juliansteenbakker)
 
 Fork from [flutter_nordic_dfu](https://pub.dev/packages/flutter_nordic_dfu) and updated with latest dependencies, now with macOS support from version 6.0.0.
@@ -89,15 +88,23 @@ Available from version 7.0.0
 - ✅ Callbacks set in `startDfu`  are called independently for each device.
 - ✅ All active DFU processes can be aborted using the `abortDfu` method without an `address`.
 - ❌ DFU processes cannot be individually aborted using the `abortDfu` method with an `address` due to current limitations in the underlying [Android-DFU-Library](https://github.com/NordicSemiconductor/Android-DFU-Library).
+- ⚠️ Devices with adjacent addresses (`…:46` and `…:47`) should be updated one after another. A device in bootloader mode advertises with its address incremented by one, so the [Android-DFU-Library](https://github.com/NordicSemiconductor/Android-DFU-Library) cannot tell such a pair apart and may report their events against the wrong device. A warning is logged when this is detected.
 
 ## Address Mapping
-The Nordic DFU library now includes an address mapping feature to track devices during firmware updates. [Read the full documentation](./ADDRESS_MAPPING.md) to learn how this improves reliability when devices change MAC addresses in DFU mode.
+
+A device performing a buttonless update reboots into its bootloader, which commonly advertises with a
+different BLE address (usually the original one, last byte incremented). The plugin handles this: every
+event is reported with the address you passed to `startDfu`, on every platform, for the whole update.
+
+`setAddressMapping`, `getTranslatedAddress`, `removeAddressMapping` and `clearAddressMappings` are
+therefore deprecated and will be removed in a future release. Delete your calls to them, along with any
+bootloader scanning that existed only to feed them — no replacement is needed.
 
 ## Resources
 
--   [DFU Introduction](https://infocenter.nordicsemi.com/topic/com.nordic.infocenter.sdk5.v11.0.0/examples_ble_dfu.html?cp=6_0_0_4_3_1 "BLE Bootloader/DFU")
--   [Secure DFU Introduction](https://infocenter.nordicsemi.com/topic/com.nordic.infocenter.sdk5.v12.0.0/ble_sdk_app_dfu_bootloader.html?cp=4_0_0_4_3_1 "BLE Secure DFU Bootloader")
--   [How to create init packet](https://github.com/NordicSemiconductor/Android-nRF-Connect/tree/master/init%20packet%20handling "Init packet handling")
+-   [DFU Introduction](https://docs.nordicsemi.com/bundle/ncs-latest/page/nrf/samples/dfu.html "BLE Bootloader/DFU")
+-   [Secure DFU Introduction](https://docs.nordicsemi.com/bundle/ncs-latest/page/nrf/app_dev/bootloaders_dfu/mcuboot_nsib/bootloader.html "BLE Secure DFU Bootloader")
+-   [How to create init packet](https://github.com/NordicSemiconductor/Android-nRF-Connect/tree/main/init%20packet%20handling "Init packet handling")
 -   [nRF51 Development Kit (DK)](https://www.nordicsemi.com/eng/Products/nRF51-DK "nRF51 DK") (compatible with Arduino Uno Revision 3)
 -   [nRF52 Development Kit (DK)](https://www.nordicsemi.com/eng/Products/Bluetooth-Smart-Bluetooth-low-energy/nRF52-DK "nRF52 DK") (compatible with Arduino Uno Revision 3)
 

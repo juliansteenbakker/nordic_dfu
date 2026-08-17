@@ -3,7 +3,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'nordic_dfu'
-  s.version          = '7.1.1'
+  s.version          = '7.2.0' # x-release-please-version
   s.summary          = 'DFU plugin for flutter.'
   s.description      = <<-DESC
 A DFU plugin project.

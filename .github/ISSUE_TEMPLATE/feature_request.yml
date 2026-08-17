@@ -1,0 +1,44 @@
+name: Feature request
+description: Suggest an idea or improvement for nordic_dfu
+labels: [enhancement]
+body:
+  - type: checkboxes
+    attributes:
+      label: Is there an existing issue for this?
+      description: Please search existing issues (open and closed) before filing a new one.
+      options:
+        - label: I have searched the existing issues
+          required: true
+
+  - type: dropdown
+    attributes:
+      label: Platform
+      description: Which platforms would this affect?
+      multiple: true
+      options:
+        - Android
+        - iOS
+        - macOS
+        - Dart API only
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Problem
+      description: What problem are you trying to solve? Is your feature request related to a problem?
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Proposed solution
+      description: |
+        What would you like to happen? If this exposes an option that Nordic's Android or iOS DFU library already supports, a link to it helps a lot.
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Alternatives considered
+      description: Any alternative solutions or workarounds you've considered.

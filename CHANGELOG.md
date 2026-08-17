@@ -1,3 +1,22 @@
+# Changelog
+
+## [7.2.0](https://github.com/juliansteenbakker/nordic_dfu/compare/v7.1.3...v7.2.0) (2026-08-17)
+
+
+### Features
+
+* **android:** support for agp 9 ([f64f0d7](https://github.com/juliansteenbakker/nordic_dfu/commit/f64f0d770cf9251c70d1556f2340f71567dfb40b))
+
+
+### Bug Fixes
+
+* **android:** remove obsolete jetifier & raise gradle heap ([725dfac](https://github.com/juliansteenbakker/nordic_dfu/commit/725dfacdd12b931d0434929b2aaf6aa7e7a39e68))
+* **android:** resolve original device address for DFU callbacks ([#283](https://github.com/juliansteenbakker/nordic_dfu/issues/283)) ([e3ee1d1](https://github.com/juliansteenbakker/nordic_dfu/commit/e3ee1d150130269c111412556a64163887a45fd4))
+
+## 7.1.3
+Improvements:
+* [Darwin] Correct package identity for IOS-DFU-Library dependency.
+
 ## 7.1.2
 Improvements:
 * [Android] Updated Nordic DFU Library to version 2.11.0. 
@@ -208,22 +227,3 @@ New Features:
 ## 0.0.1
 
 * Init the package.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

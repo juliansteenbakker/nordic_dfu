@@ -1,11 +1,21 @@
 version: 2
 updates:
+  # A "<type>(scope): ..." prefix is required on every ecosystem here, otherwise
+  # semantic-pr.yml rejects Dependabot's default "Bump x from y to z" titles.
+  #
+  # Ecosystems that ship to plugin consumers (the plugin's own Android/Swift/pub
+  # dependencies) use "deps", which release-please renders under a
+  # "Dependencies" changelog heading. Dev-only ecosystems (CI actions, the
+  # example app) use "chore" so they stay out of the changelog.
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
     reviewers:
       - juliansteenbakker
+    commit-message:
+      prefix: chore
+      include: scope
 
   - package-ecosystem: gradle
     directory: /android
@@ -13,6 +23,19 @@ updates:
       interval: weekly
     reviewers:
       - juliansteenbakker
+    commit-message:
+      prefix: deps
+      include: scope
+
+  - package-ecosystem: gradle
+    directory: /example/android
+    schedule:
+      interval: weekly
+    reviewers:
+      - juliansteenbakker
+    commit-message:
+      prefix: chore
+      include: scope
 
   - package-ecosystem: pub
     directory: /
@@ -20,3 +43,29 @@ updates:
       interval: weekly
     reviewers:
       - juliansteenbakker
+    commit-message:
+      prefix: deps
+      include: scope
+
+  - package-ecosystem: pub
+    directory: /example
+    schedule:
+      interval: weekly
+    reviewers:
+      - juliansteenbakker
+    commit-message:
+      prefix: chore
+      include: scope
+
+  # Directory must hold Package.swift. Note that the CocoaPods pin on
+  # NordicDFU in darwin/nordic_dfu.podspec is not covered: Dependabot has no
+  # CocoaPods support, so that one has to be bumped by hand to match.
+  - package-ecosystem: swift
+    directory: /darwin/nordic_dfu
+    schedule:
+      interval: weekly
+    reviewers:
+      - juliansteenbakker
+    commit-message:
+      prefix: deps
+      include: scope

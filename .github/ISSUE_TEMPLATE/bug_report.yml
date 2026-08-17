@@ -1,0 +1,91 @@
+name: Bug report
+description: Report a problem with nordic_dfu
+labels: [bug]
+body:
+  - type: checkboxes
+    attributes:
+      label: Is there an existing issue for this?
+      description: Please search existing issues (open and closed) before filing a new one.
+      options:
+        - label: I have searched the existing issues
+          required: true
+
+  - type: checkboxes
+    attributes:
+      label: Have you checked the upstream libraries?
+      description: |
+        This plugin is a wrapper around Nordic Semiconductor's official DFU libraries. If the DFU itself fails on the device (aborted transfer, invalid firmware, bootloader errors), the cause is often upstream or in the firmware package rather than in this plugin.
+      options:
+        - label: The problem still occurs with the example app in this repository
+          required: false
+        - label: I have checked whether the same DFU succeeds with Nordic's own nRF Connect / nRF Device Manager app
+          required: false
+
+  - type: input
+    attributes:
+      label: nordic_dfu version
+      placeholder: e.g. 7.1.3
+    validations:
+      required: true
+
+  - type: dropdown
+    attributes:
+      label: Platform
+      multiple: true
+      options:
+        - Android
+        - iOS
+        - macOS
+    validations:
+      required: true
+
+  - type: input
+    attributes:
+      label: Device and OS version
+      description: The phone/tablet/Mac running the app.
+      placeholder: e.g. Pixel 8, Android 15
+    validations:
+      required: true
+
+  - type: input
+    attributes:
+      label: Nordic chip and SoftDevice / bootloader
+      description: The target being updated, and its bootloader type (legacy or secure) if known.
+      placeholder: e.g. nRF52832, secure bootloader (nRF5 SDK 17.1)
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Flutter doctor output
+      description: Output of `flutter doctor -v`.
+      render: text
+
+  - type: textarea
+    attributes:
+      label: What happened?
+      description: A clear description of the bug, and what you expected to happen instead.
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Steps to reproduce
+      description: |
+        Minimal steps to reproduce the behavior. A minimal reproducible sample project or code snippet is very helpful.
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: How do you start the DFU?
+      description: |
+        The `startDfu` call, including the DFU package you pass and any `AndroidParameters` / `DarwinParameters` you set. Please redact nothing that affects the DFU settings.
+      render: dart
+
+  - type: textarea
+    attributes:
+      label: Logs
+      description: |
+        Relevant logs, stack traces, or crash reports. Native DFU logs are the most useful ones here: `adb logcat` on Android, or the Xcode/Console output on iOS and macOS.
+      render: text
