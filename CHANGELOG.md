@@ -6,7 +6,6 @@
 ### Features
 
 * **android:** support for agp 9 ([f64f0d7](https://github.com/juliansteenbakker/nordic_dfu/commit/f64f0d770cf9251c70d1556f2340f71567dfb40b))
-* **android:** support for agp 9 ([42628e2](https://github.com/juliansteenbakker/nordic_dfu/commit/42628e2780691eeca5f3dbd7d5aa6d2e31ee10b3))
 
 
 ### Bug Fixes
