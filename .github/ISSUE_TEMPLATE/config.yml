@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Android DFU Library (upstream)
+    url: https://github.com/NordicSemiconductor/Android-DFU-Library/issues
+    about: For problems in the DFU implementation itself on Android.
+  - name: iOS DFU Library (upstream)
+    url: https://github.com/NordicSemiconductor/IOS-DFU-Library/issues
+    about: For problems in the DFU implementation itself on iOS and macOS.
+  - name: Nordic DevZone
+    url: https://devzone.nordicsemi.com/
+    about: For questions about bootloaders, SoftDevices, and building DFU packages.
