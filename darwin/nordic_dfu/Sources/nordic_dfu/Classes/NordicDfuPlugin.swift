@@ -147,12 +147,16 @@ public class NordicDfuPlugin: NSObject, FlutterPlugin, FlutterStreamHandler, Log
             activeDfuMap.removeValue(forKey: deviceAddress)
         case .disconnecting:
             sink?(["onDeviceDisconnecting":deviceAddress])
+        case .disconnected:
+            sink?(["onDeviceDisconnected":deviceAddress])
         case .aborted:
             sink?(["onDfuAborted":deviceAddress])
             activeDfuMap[deviceAddress]?.pendingResult(FlutterError(code: "DFU_ABORTED", message: "DFU aborted by user", details: "device address: \(deviceAddress)"))
             activeDfuMap.removeValue(forKey: deviceAddress)
         case .connecting:
             sink?(["onDeviceConnecting":deviceAddress])
+        case .connected:
+            sink?(["onDeviceConnected":deviceAddress])
         case .starting:
             sink?(["onDfuProcessStarting":deviceAddress])
         case .enablingDfuMode:
