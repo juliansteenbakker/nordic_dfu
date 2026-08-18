@@ -6,9 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:nordic_dfu/src/dfu_event_handler.dart';
 import 'package:nordic_dfu/src/parameters/android_parameters.dart';
-import 'package:nordic_dfu/src/parameters/android_special_parameter.dart';
 import 'package:nordic_dfu/src/parameters/darwin_parameters.dart';
-import 'package:nordic_dfu/src/parameters/ios_special_parameter.dart';
 
 /// A singleton class to handle the Nordic DFU process.
 class NordicDfu {
@@ -25,54 +23,8 @@ class NordicDfu {
   static const MethodChannel _methodChannel = MethodChannel(_methodChannelName);
   static const EventChannel _eventChannel = EventChannel(_eventChannelName);
 
-  // Private map to store address mappings (String -> String)
-  final Map<String, String> _addressMap = {};
-
   StreamSubscription<void>? _events;
   final Map<String, DfuEventHandler> _eventHandlerMap = {};
-
-  /// Maps an address a device advertises with in DFU mode back to the address
-  /// the DFU was started with. No longer necessary: every event is already
-  /// reported with the address passed to [startDfu].
-  @Deprecated(
-    'Address changes in DFU mode are handled by the platform implementations. '
-    'This will be removed in a future release.',
-  )
-  void setAddressMapping(String originalAddress, String translatedAddress) {
-    if (originalAddress.isNotEmpty && translatedAddress.isNotEmpty) {
-      _addressMap[originalAddress] = translatedAddress;
-    }
-  }
-
-  /// Method to get translated address or return original if not found
-  /// Return the translated address if it exists, otherwise return the original address
-  /// @param address the address to translate
-  @Deprecated(
-    'Address changes in DFU mode are handled by the platform implementations. '
-    'This will be removed in a future release.',
-  )
-  String getTranslatedAddress(String address) {
-    return _addressMap[address] ?? address;
-  }
-
-  /// Method to remove a mapping
-  /// @param originalAddress the address to remove
-  @Deprecated(
-    'Address changes in DFU mode are handled by the platform implementations. '
-    'This will be removed in a future release.',
-  )
-  void removeAddressMapping(String originalAddress) {
-    _addressMap.remove(originalAddress);
-  }
-
-  /// Method to clear all mappings
-  @Deprecated(
-    'Address changes in DFU mode are handled by the platform implementations. '
-    'This will be removed in a future release.',
-  )
-  void clearAddressMappings() {
-    _addressMap.clear();
-  }
 
   void _ensureEventStreamSetup() {
     if (_events != null) return;
@@ -99,23 +51,6 @@ class NordicDfu {
     debugPrint('Error in event stream: $error');
   }
 
-  /// Returns the key to use in `_eventHandlerMap` for a given device address.
-  ///
-  /// - If the address is an original address, returns it directly.
-  /// - If the address is a translated address, returns the original address it maps to.
-  /// - If the address is not in the map, returns the address as-is.
-  String _getHandlerMapKey(String address) {
-    if (_addressMap.containsKey(address)) {
-      return address;
-    } else if (_addressMap.containsValue(address)) {
-      return _addressMap.entries
-          .firstWhere((element) => element.value == address)
-          .key;
-    } else {
-      return address;
-    }
-  }
-
   void _handleSingleEvent(String key, dynamic value) {
     if (value == null) {
       debugPrint('Value is null for key: $key');
@@ -133,10 +68,8 @@ class NordicDfu {
       values = null;
     }
 
-    final handlerMapKey = _getHandlerMapKey(address);
-
-    final handler = _eventHandlerMap[handlerMapKey];
-    handler?.dispatchEvent(key, values, handlerMapKey);
+    final handler = _eventHandlerMap[address];
+    handler?.dispatchEvent(key, values, address);
   }
 
   /// Starts the DFU process.
@@ -148,65 +81,24 @@ class NordicDfu {
     bool forceDfu = false,
     int? numberOfPackets,
     bool enableUnsafeExperimentalButtonlessServiceInSecureDfu = false,
-    @Deprecated('Use androidParameters instead')
-    AndroidSpecialParameter? androidSpecialParameter,
-    @Deprecated('Use darwinParameters instead')
-    IosSpecialParameter? iosSpecialParameter,
     AndroidParameters androidParameters = const AndroidParameters(),
     DarwinParameters darwinParameters = const DarwinParameters(),
     DfuEventHandler? dfuEventHandler,
-    @Deprecated('Use dfuEventHandler.onDeviceConnected instead')
-    DfuCallback? onDeviceConnected,
-    @Deprecated('Use dfuEventHandler.onDeviceConnecting instead')
-    DfuCallback? onDeviceConnecting,
-    @Deprecated('Use dfuEventHandler.onDeviceDisconnected instead')
-    DfuCallback? onDeviceDisconnected,
-    @Deprecated('Use dfuEventHandler.onDeviceDisconnecting instead')
-    DfuCallback? onDeviceDisconnecting,
-    @Deprecated('Use dfuEventHandler.onDfuAborted instead')
-    DfuCallback? onDfuAborted,
-    @Deprecated('Use dfuEventHandler.onDfuCompleted instead')
-    DfuCallback? onDfuCompleted,
-    @Deprecated('Use dfuEventHandler.onDfuProcessStarted instead')
-    DfuCallback? onDfuProcessStarted,
-    @Deprecated('Use dfuEventHandler.onDfuProcessStarting instead')
-    DfuCallback? onDfuProcessStarting,
-    @Deprecated('Use dfuEventHandler.onEnablingDfuMode instead')
-    DfuCallback? onEnablingDfuMode,
-    @Deprecated('Use dfuEventHandler.onFirmwareValidating instead')
-    DfuCallback? onFirmwareValidating,
-    @Deprecated('Use dfuEventHandler.onError instead')
-    DfuErrorCallback? onError,
-    @Deprecated('Use dfuEventHandler.onProgressChanged instead')
-    DfuProgressCallback? onProgressChanged,
   }) async {
     _eventHandlerMap[address] = DfuEventHandler(
-      onDeviceConnected:
-          dfuEventHandler?.onDeviceConnected ?? onDeviceConnected,
-      onDeviceConnecting:
-          dfuEventHandler?.onDeviceConnecting ?? onDeviceConnecting,
-      onDeviceDisconnected:
-          dfuEventHandler?.onDeviceDisconnected ?? onDeviceDisconnected,
-      onDeviceDisconnecting:
-          dfuEventHandler?.onDeviceDisconnecting ?? onDeviceDisconnecting,
-      onDfuAborted: dfuEventHandler?.onDfuAborted ?? onDfuAborted,
-      onDfuCompleted: dfuEventHandler?.onDfuCompleted ?? onDfuCompleted,
-      onDfuProcessStarted:
-          dfuEventHandler?.onDfuProcessStarted ?? onDfuProcessStarted,
-      onDfuProcessStarting:
-          dfuEventHandler?.onDfuProcessStarting ?? onDfuProcessStarting,
-      onEnablingDfuMode:
-          dfuEventHandler?.onEnablingDfuMode ?? onEnablingDfuMode,
-      onFirmwareValidating:
-          dfuEventHandler?.onFirmwareValidating ?? onFirmwareValidating,
-      onError: dfuEventHandler?.onError ?? onError,
-      onProgressChanged:
-          dfuEventHandler?.onProgressChanged ?? onProgressChanged,
+      onDeviceConnected: dfuEventHandler?.onDeviceConnected,
+      onDeviceConnecting: dfuEventHandler?.onDeviceConnecting,
+      onDeviceDisconnected: dfuEventHandler?.onDeviceDisconnected,
+      onDeviceDisconnecting: dfuEventHandler?.onDeviceDisconnecting,
+      onDfuAborted: dfuEventHandler?.onDfuAborted,
+      onDfuCompleted: dfuEventHandler?.onDfuCompleted,
+      onDfuProcessStarted: dfuEventHandler?.onDfuProcessStarted,
+      onDfuProcessStarting: dfuEventHandler?.onDfuProcessStarting,
+      onEnablingDfuMode: dfuEventHandler?.onEnablingDfuMode,
+      onFirmwareValidating: dfuEventHandler?.onFirmwareValidating,
+      onError: dfuEventHandler?.onError,
+      onProgressChanged: dfuEventHandler?.onProgressChanged,
     );
-
-    // if (dfuEventHandler != null) {
-    //   _eventHandlerMap[address] = dfuEventHandler;
-    // }
 
     _ensureEventStreamSetup();
 
@@ -219,8 +111,8 @@ class NordicDfu {
       'numberOfPackets': numberOfPackets,
       'enableUnsafeExperimentalButtonlessServiceInSecureDfu':
           enableUnsafeExperimentalButtonlessServiceInSecureDfu,
-      ...(androidSpecialParameter?.toJson() ?? androidParameters.toJson()),
-      ...(iosSpecialParameter?.toJson() ?? darwinParameters.toJson()),
+      ...androidParameters.toJson(),
+      ...darwinParameters.toJson(),
     });
   }
 

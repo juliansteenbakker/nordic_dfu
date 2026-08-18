@@ -265,18 +265,6 @@ class MyAppState extends State<MyApp> {
             );
           });
         },
-        // The example intentionally exercises the deprecated callback so the
-        // migration path stays covered until it is removed.
-        // ignore: deprecated_member_use
-        onFirmwareUploading: (string) {
-          debugPrint('$tag firmware uploading: $string');
-          setState(() {
-            dfuStateMap[deviceId]?.addEvent(
-              'Uploading',
-              'Uploading firmware to device...',
-            );
-          });
-        },
         onError: (address, error, errorType, message) {
           debugPrint(
             '$tag error: device $address, error $error, errorType $errorType, message $message',
