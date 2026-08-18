@@ -82,6 +82,56 @@ The file does not need a `.zip` extension. Firmware downloaded to a temporary fi
 On Android, assets are copied into the app's cache directory before the update and the copy is
 deleted once the DFU finishes, fails, or is aborted.
 
+## Android permissions
+
+From version 8.0.0 this plugin no longer declares Bluetooth permissions in its own
+`AndroidManifest.xml`, so your app decides which ones end up in the merged manifest. Add what your
+app actually needs to `android/app/src/main/AndroidManifest.xml`:
+
+```xml
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Required to scan for devices on API 31+. Add usesPermissionFlags="neverForLocation" when
+         you can strongly assert that your app never derives physical location from scan results;
+         the location permissions below are then not needed at all on API 31+. -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_SCAN"
+        android:usesPermissionFlags="neverForLocation"
+        tools:targetApi="s" />
+
+    <!-- Only required if you scan on API 30 and below, where scanning implies location access. -->
+    <uses-permission
+        android:name="android.permission.ACCESS_FINE_LOCATION"
+        android:maxSdkVersion="30" />
+</manifest>
+```
+
+Two things are still contributed for you and need no action:
+
+- `FOREGROUND_SERVICE` and `FOREGROUND_SERVICE_CONNECTED_DEVICE` come from this plugin, because the
+  DFU services it declares run as a foreground service unless you pass
+  `AndroidParameters(startAsForegroundService: false)`.
+- `BLUETOOTH` and `BLUETOOTH_ADMIN` (both `maxSdkVersion="30"`) and `BLUETOOTH_CONNECT` come from
+  the [Android-DFU-Library](https://github.com/NordicSemiconductor/Android-DFU-Library) itself.
+
+To change or drop one of the permissions supplied by the DFU library, override it with
+`tools:node="remove"` or `tools:node="replace"`:
+
+```xml
+<uses-permission
+    android:name="android.permission.BLUETOOTH_ADMIN"
+    tools:node="remove" />
+```
+
+### Upgrading from 7.x
+
+Previously the plugin declared `BLUETOOTH_SCAN`, `ACCESS_FINE_LOCATION` and
+`ACCESS_COARSE_LOCATION` (the last two via `uses-permission-sdk-23`, so on every API level from 23
+up). If your app relies on those and does not declare them itself, add them as shown above, or
+scanning stops working after upgrading. Apps that were fighting the old declarations with
+`tools:maxSdkVersion` or `tools:node="remove"` can delete those workarounds.
+
 ## Parallel DFU
 
 Available from version 7.0.0
@@ -119,7 +169,7 @@ event is reported with the address you passed to `startDfu`, on every platform, 
 
 `setAddressMapping`, `getTranslatedAddress`, `removeAddressMapping` and `clearAddressMappings` are
 therefore deprecated and will be removed in a future release. Delete your calls to them, along with any
-bootloader scanning that existed only to feed them — no replacement is needed.
+bootloader scanning that existed only to feed them, no replacement is needed.
 
 ## Resources
 
