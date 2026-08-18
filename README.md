@@ -61,6 +61,27 @@ await NordicDfu().startDfu(
          );
 ```
 
+## Firmware files
+
+The firmware you pass to `startDfu` is a Distribution packet, the ZIP produced by `nrfutil`
+containing a `manifest.json`. You can pass either an absolute path or an asset path with
+`fileInAsset: true`, and assets work the same way on Android, iOS and macOS.
+
+The file does not need a `.zip` extension. Firmware downloaded to a temporary file without one, as
+`http` and `dio` typically produce, is accepted on every platform.
+
+`startDfu` reports file problems with these error codes, before any connection is attempted:
+
+| Code | Meaning |
+| --- | --- |
+| `FILE_NOT_FOUND` | The path or asset does not exist. The details field carries the path that was checked. |
+| `INVALID_FIRMWARE` | The file exists but is not a valid Distribution packet. The details field carries the reason from the DFU library, for example a missing `manifest.json`. |
+| `ABNORMAL_PARAMETER` | `address` or `filePath` was missing from the call. |
+| `DFU_START_ERROR` | The DFU library refused to start, for example on a malformed device address. |
+
+On Android, assets are copied into the app's cache directory before the update and the copy is
+deleted once the DFU finishes, fails, or is aborted.
+
 ## Android permissions
 
 From version 8.0.0 this plugin no longer declares Bluetooth permissions in its own

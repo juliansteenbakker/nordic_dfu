@@ -96,23 +96,67 @@ public class NordicDfuPlugin: NSObject, FlutterPlugin, FlutterStreamHandler, Log
         let options = DfuOptions(arguments: arguments)
 
         let fileInAsset = (arguments["fileInAsset"] as? Bool) ?? false
-        
+
         if (fileInAsset) {
             let key = registrar.lookupKey(forAsset: filePath)
-            guard let pathInAsset = Bundle.main.path(forResource: key, ofType: nil) else {
-                result(FlutterError(code: "ABNORMAL_PARAMETER", message: "file in asset not found \(filePath)", details: nil))
+            guard let pathInAsset = resolveAsset(key) else {
+                result(FlutterError(
+                    code: "FILE_NOT_FOUND",
+                    message: "Asset not found: \(filePath)",
+                    details: "Looked for '\(key)' in \(assetSearchLocations(key).joined(separator: ", "))"))
                 return
             }
 
             filePath = pathInAsset
         }
-        
+
         startDfu(address,
                  filePath: filePath,
                  options: options,
                  result: result)
     }
     
+    // Flutter stores assets in a different place on every platform, and `lookupKey(forAsset:)`
+    // returns a key relative to a different root on each: on iOS the key resolves inside the main
+    // bundle's resources, while on macOS it is relative to the bundle root and points into
+    // Contents/Frameworks/App.framework/Resources. Check every known location so `fileInAsset`
+    // behaves the same on both.
+    private func resolveAsset(_ key: String) -> String? {
+        assetSearchLocations(key).first { FileManager.default.fileExists(atPath: $0) }
+    }
+
+    private func assetSearchLocations(_ key: String) -> [String] {
+        var locations: [String] = []
+
+        if let mainBundlePath = Bundle.main.path(forResource: key, ofType: nil) {
+            locations.append(mainBundlePath)
+        }
+        locations.append(Bundle.main.bundleURL.appendingPathComponent(key).path)
+        if let resources = Bundle.main.resourceURL {
+            locations.append(resources.appendingPathComponent(key).path)
+        }
+        if let frameworks = Bundle.main.privateFrameworksURL {
+            let appFramework = frameworks.appendingPathComponent("App.framework")
+            locations.append(appFramework.appendingPathComponent(key).path)
+            locations.append(appFramework.appendingPathComponent("Resources").appendingPathComponent(key).path)
+        }
+
+        return locations
+    }
+
+    // The DFU library rejects any URL whose extension is not exactly `zip` before it looks at the
+    // contents, which breaks firmware downloaded to a temporary file without an extension. Read
+    // those files into memory instead, which skips that check.
+    private func loadFirmware(atPath path: String) throws -> DFUFirmware {
+        let url = URL(fileURLWithPath: path)
+
+        if url.pathExtension.caseInsensitiveCompare("zip") == .orderedSame {
+            return try DFUFirmware(urlToZipFile: url)
+        }
+
+        return try DFUFirmware(zipFile: try Data(contentsOf: url))
+    }
+
     private func startDfu(
         _ address: String,
         filePath: String,
@@ -122,10 +166,15 @@ public class NordicDfuPlugin: NSObject, FlutterPlugin, FlutterStreamHandler, Log
             result(FlutterError(code: "DEVICE_ADDRESS_ERROR", message: "Device address conver to uuid failed", details: "Device uuid \(address) convert to uuid failed"))
             return
         }
-        
+
+        guard FileManager.default.fileExists(atPath: filePath) else {
+            result(FlutterError(code: "FILE_NOT_FOUND", message: "Firmware file not found", details: filePath))
+            return
+        }
+
         do {
-            let firmware = try DFUFirmware(urlToZipFile: URL(fileURLWithPath: filePath))
-            
+            let firmware = try loadFirmware(atPath: filePath)
+
             activeDfuMap[address] = DfuProcess(
                 deviceAddress: address,
                 firmware: firmware,
@@ -134,7 +183,10 @@ public class NordicDfuPlugin: NSObject, FlutterPlugin, FlutterStreamHandler, Log
                 result: result,
                 options: options)
         } catch {
-            result(FlutterError(code: "DFU_FIRMWARE_NOT_FOUND", message: "Could not dfu zip file", details: nil))
+            result(FlutterError(
+                code: "INVALID_FIRMWARE",
+                message: "Could not read firmware from \(filePath)",
+                details: error.localizedDescription))
             return
         }
     }
