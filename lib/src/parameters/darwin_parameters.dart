@@ -1,7 +1,7 @@
 /// iOS parameters for DFUServiceInitiator object.
 /// See https://github.com/NordicSemiconductor/IOS-Pods-DFU-Library for more information.
 class DarwinParameters {
-  /// Constructor for IosSpecialParameter
+  /// Constructor for DarwinParameters
   const DarwinParameters({
     this.alternativeAdvertisingNameEnabled,
     this.forceScanningForNewAddressInLegacyDfu,
@@ -93,7 +93,7 @@ class DarwinParameters {
   /// notification will be disabled by the DFU target. Default value is 12.
   final int? packetReceiptNotificationParameter;
 
-  /// Converts IosSpecialParameter into a json object.
+  /// Converts DarwinParameters into a json object.
   Map<String, dynamic> toJson() => {
         'alternativeAdvertisingNameEnabled': alternativeAdvertisingNameEnabled,
         'forceScanningForNewAddressInLegacyDfu':

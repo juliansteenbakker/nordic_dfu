@@ -38,16 +38,18 @@ await NordicDfu().startDfu(
       'EB:75:AD:E3:CA:CF',
       'assets/file.zip',
       fileInAsset: true,
-      onProgressChanged: (
-        deviceAddress,
-        percent,
-        speed,
-        avgSpeed,
-        currentPart,
-        partsTotal,
-      ) {
-        print('deviceAddress: $deviceAddress, percent: $percent');
-      },
+      dfuEventHandler: DfuEventHandler(
+        onProgressChanged: (
+          deviceAddress,
+          percent,
+          speed,
+          avgSpeed,
+          currentPart,
+          partsTotal,
+        ) {
+          print('deviceAddress: $deviceAddress, percent: $percent');
+        },
+      ),
     );
 ```
 
@@ -60,6 +62,22 @@ await NordicDfu().startDfu(
             fileInAsset: true,
          );
 ```
+
+## Migrating to 8.0.0
+
+Version 8.0.0 removes the API that was deprecated during 7.x. Nothing was replaced in this release,
+every removal has had its replacement available since the version that deprecated it.
+
+| Removed | Replacement |
+| --- | --- |
+| `startDfu(androidSpecialParameter: ...)` and the `AndroidSpecialParameter` class | `startDfu(androidParameters: AndroidParameters(...))` |
+| `startDfu(iosSpecialParameter: ...)` and the `IosSpecialParameter` class | `startDfu(darwinParameters: DarwinParameters(...))` |
+| The individual callback arguments on `startDfu` (`onDeviceConnected`, `onDfuCompleted`, `onProgressChanged`, and the rest) | `startDfu(dfuEventHandler: DfuEventHandler(...))` with the same callback names |
+| `DfuEventHandler.onFirmwareUploading` | `DfuEventHandler.onDfuProcessStarted` |
+| `setAddressMapping`, `getTranslatedAddress`, `removeAddressMapping`, `clearAddressMappings` | None needed, see [Address Mapping](#address-mapping) |
+
+`AndroidParameters` and `DarwinParameters` take the same arguments as the classes they replace, so
+migrating those is a rename.
 
 ## Firmware files
 
@@ -167,9 +185,9 @@ A device performing a buttonless update reboots into its bootloader, which commo
 different BLE address (usually the original one, last byte incremented). The plugin handles this: every
 event is reported with the address you passed to `startDfu`, on every platform, for the whole update.
 
-`setAddressMapping`, `getTranslatedAddress`, `removeAddressMapping` and `clearAddressMappings` are
-therefore deprecated and will be removed in a future release. Delete your calls to them, along with any
-bootloader scanning that existed only to feed them, no replacement is needed.
+`setAddressMapping`, `getTranslatedAddress`, `removeAddressMapping` and `clearAddressMappings` were
+deprecated in 7.2.0 and are removed in 8.0.0. Delete your calls to them, along with any bootloader
+scanning that existed only to feed them, no replacement is needed.
 
 ## Resources
 
