@@ -1,26 +1,16 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- required for API 18 - 30 -->
-    <uses-permission
-        android:name="android.permission.BLUETOOTH"
-        android:maxSdkVersion="30" />
-    <uses-permission
-        android:name="android.permission.BLUETOOTH_ADMIN"
-        android:maxSdkVersion="30" />
+    <!-- Bluetooth permissions are intentionally NOT declared here, so apps stay in control of
+         their own merged manifest. Declare the ones you need yourself; see the "Android
+         permissions" section of the README.
 
-    <!-- required for API 23 - 33 -->
-    <uses-permission-sdk-23
-        android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-    <uses-permission-sdk-23
-        android:name="android.permission.ACCESS_FINE_LOCATION"/>
+         Note that BLUETOOTH, BLUETOOTH_ADMIN (both maxSdkVersion="30") and BLUETOOTH_CONNECT are
+         declared by the Android-DFU-Library this plugin depends on, and are merged into your app
+         from there.
 
-    <!-- API 31+ -->
-    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
-    <!-- add android:usesPermissionFlags="neverForLocation" when you can strongly assert that
-         your app never derives physical location from Bluetooth scan results. -->
-    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
+         The two permissions below are required by the DFU services declared in this manifest,
+         which run as a foreground service by default, so they stay here. -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
 
     <application>

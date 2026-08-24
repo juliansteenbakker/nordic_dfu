@@ -1,7 +1,3 @@
-// Ignore deprecation warnings for onFirmwareUploading to maintain backward compatibility
-// while transitioning users to onDfuProcessStarted
-// ignore_for_file: deprecated_member_use_from_same_package
-
 import 'package:flutter/foundation.dart';
 
 /// Callback for when DFU status has changed.
@@ -55,7 +51,6 @@ class DfuEventHandler {
     this.onDfuProcessStarting,
     this.onEnablingDfuMode,
     this.onFirmwareValidating,
-    @Deprecated('Use onDfuProcessStarted instead') this.onFirmwareUploading,
     this.onError,
     this.onProgressChanged,
   });
@@ -98,12 +93,6 @@ class DfuEventHandler {
   /// Only called when firmware needs to be validated.
   DfuCallback? onFirmwareValidating;
 
-  /// Callback triggered when the firmware validation step is in progress.
-  ///
-  /// Not available on Android
-  @Deprecated('Use onDfuProcessStarted instead')
-  DfuCallback? onFirmwareUploading;
-
   /// Callback triggered when an error occurs during the DFU process.
   ///
   /// Provides detailed error information.
@@ -131,8 +120,6 @@ class DfuEventHandler {
         onDfuCompleted?.call(address);
       case 'onDfuProcessStarted':
         onDfuProcessStarted?.call(address);
-        // Backward compatibility: call deprecated callback
-        onFirmwareUploading?.call(address);
       case 'onDfuProcessStarting':
         onDfuProcessStarting?.call(address);
       case 'onEnablingDfuMode':

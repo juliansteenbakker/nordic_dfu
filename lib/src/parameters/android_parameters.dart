@@ -1,7 +1,7 @@
 /// Android parameters for DFUServiceInitiator object.
 /// See https://github.com/NordicSemiconductor/Android-DFU-Library for more information.
 class AndroidParameters {
-  /// Constructor for AndroidSpecialParameter
+  /// Constructor for AndroidParameters
   const AndroidParameters({
     this.disableNotification,
     this.keepBond,
@@ -101,7 +101,7 @@ class AndroidParameters {
   /// This can optimize the DFU transfer speed based on the negotiated MTU.
   final int? currentMtu;
 
-  /// Converts AndroidSpecialParameter into a json object.
+  /// Converts AndroidParameters into a json object.
   Map<String, dynamic> toJson() => {
         'disableNotification': disableNotification,
         'keepBond': keepBond,
