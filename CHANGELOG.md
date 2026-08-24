@@ -19,6 +19,13 @@
 
 * resolve assets on macOS and report firmware file errors accurately ([#296](https://github.com/juliansteenbakker/nordic_dfu/issues/296)) ([ccf5f1d](https://github.com/juliansteenbakker/nordic_dfu/commit/ccf5f1d035b3fc9b59f76f2849a4e706ae1893fa)), closes [#141](https://github.com/juliansteenbakker/nordic_dfu/issues/141)
 
+## [7.2.1](https://github.com/juliansteenbakker/nordic_dfu/compare/v7.2.0...v7.2.1) (2026-08-24)
+
+### Bug Fixes
+
+* **apple:** update nordic dfu cocoapod to 4.17.0
+
+
 ## [7.2.0](https://github.com/juliansteenbakker/nordic_dfu/compare/v7.1.3...v7.2.0) (2026-08-17)
 
 
