@@ -1,5 +1,12 @@
 # Changelog
 
+## [7.2.1](https://github.com/juliansteenbakker/nordic_dfu/compare/v7.2.0...v7.2.1) (2026-08-24)
+
+### Bug Fixes
+
+* **apple:** update nordic dfu cocoapod to 4.17.0
+
+
 ## [7.2.0](https://github.com/juliansteenbakker/nordic_dfu/compare/v7.1.3...v7.2.0) (2026-08-17)
 
 
