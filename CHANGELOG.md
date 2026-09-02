@@ -1,5 +1,12 @@
 # Changelog
 
+## [8.0.1](https://github.com/juliansteenbakker/nordic_dfu/compare/v8.0.0...v8.0.1) (2026-09-02)
+
+
+### Dependencies
+
+* **deps:** bump gradle-wrapper from 9.7.0 to 9.7.1 in /android ([#301](https://github.com/juliansteenbakker/nordic_dfu/issues/301)) ([3f26ee0](https://github.com/juliansteenbakker/nordic_dfu/commit/3f26ee03c65df21e37f8eacc8cb352add6accdcb))
+
 ## [8.0.1](https://github.com/juliansteenbakker/nordic_dfu/compare/v8.0.0...v8.0.1) (2026-08-24)
 
 ### Bug Fixes
