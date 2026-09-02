@@ -27,6 +27,33 @@ jobs:
       - name: Dependency Review
         uses: actions/dependency-review-action@v5
 
+  darwin_dependency_pin:
+    name: Darwin Dependency Pin
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+
+      # Dependabot updates Package.swift but has no CocoaPods support, so the
+      # podspec pin is bumped by hand and silently drifts otherwise. The two
+      # constraints are equivalent by construction: `~> 4.17.0` and
+      # `.upToNextMinor(from: "4.17.0")` both allow 4.17.x, so comparing the
+      # versions they name is enough.
+      - name: Compare NordicDFU Pins
+        run: |
+          spm=$(grep -o 'upToNextMinor(from: "[0-9][0-9.]*"' darwin/nordic_dfu/Package.swift | grep -o '[0-9][0-9.]*')
+          pod=$(grep -o "s.dependency 'NordicDFU', '~> [0-9][0-9.]*'" darwin/nordic_dfu.podspec | grep -o '[0-9][0-9.]*')
+          echo "Package.swift: ${spm:-<not found>}"
+          echo "podspec:       ${pod:-<not found>}"
+          if [ -z "$spm" ] || [ -z "$pod" ]; then
+            echo "::error::Could not read the NordicDFU version from both files."
+            exit 1
+          fi
+          if [ "$spm" != "$pod" ]; then
+            echo "::error::NordicDFU pins differ. Bump darwin/nordic_dfu.podspec to $spm."
+            exit 1
+          fi
+
   analysis:
     name: Analysis (${{ matrix.name }})
     runs-on: ubuntu-latest

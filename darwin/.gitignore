@@ -34,3 +34,9 @@ Icon?
 .tags*
 
 /Flutter/Generated.xcconfig
+
+# Swift Package Manager. Package.resolved is deliberately not committed: this is
+# a library, so the resolved versions come from the app that consumes it.
+.build/
+.swiftpm/
+Package.resolved
