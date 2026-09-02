@@ -21,7 +21,6 @@ updates:
       interval: weekly
     cooldown:
       default-days: 7
-      semver-major-days: 14
     groups:
       github-actions:
         patterns:
@@ -36,7 +35,6 @@ updates:
       interval: weekly
     cooldown:
       default-days: 7
-      semver-major-days: 14
     commit-message:
       prefix: deps
 
@@ -46,7 +44,6 @@ updates:
       interval: weekly
     cooldown:
       default-days: 7
-      semver-major-days: 14
     groups:
       example-android:
         patterns:
@@ -63,7 +60,6 @@ updates:
       interval: weekly
     cooldown:
       default-days: 7
-      semver-major-days: 14
     commit-message:
       prefix: deps
       prefix-development: chore
@@ -74,7 +70,6 @@ updates:
       interval: weekly
     cooldown:
       default-days: 7
-      semver-major-days: 14
     groups:
       example-dart:
         patterns:
@@ -93,6 +88,5 @@ updates:
       interval: weekly
     cooldown:
       default-days: 7
-      semver-major-days: 14
     commit-message:
       prefix: deps
