@@ -1,5 +1,46 @@
 # Changelog
 
+## [8.1.0](https://github.com/juliansteenbakker/nordic_dfu/compare/v8.0.0...v8.1.0) (2026-09-07)
+
+
+### Features
+
+* **android:** expose disableMtuRequest on AndroidParameters ([#312](https://github.com/juliansteenbakker/nordic_dfu/issues/312)) ([db962be](https://github.com/juliansteenbakker/nordic_dfu/commit/db962beb5018afe2a38e5c4943ca645443eb7b1b))
+
+
+### Bug Fixes
+
+* **darwin:** apply numberOfPackets when no Darwin PRN is set ([#311](https://github.com/juliansteenbakker/nordic_dfu/issues/311)) ([5abd195](https://github.com/juliansteenbakker/nordic_dfu/commit/5abd1958bebe6e339adefce51b5f5400ff790139))
+
+
+### Dependencies
+
+* **deps:** bump gradle-wrapper from 9.7.0 to 9.7.1 in /android ([#301](https://github.com/juliansteenbakker/nordic_dfu/issues/301)) ([3f26ee0](https://github.com/juliansteenbakker/nordic_dfu/commit/3f26ee03c65df21e37f8eacc8cb352add6accdcb))
+
+## [8.0.1](https://github.com/juliansteenbakker/nordic_dfu/compare/v8.0.0...v8.0.1) (2026-08-24)
+
+### Bug Fixes
+
+* **apple:** update nordic dfu cocoapod to 4.17.0
+
+Other changes from v8.0.0:
+
+### ⚠ BREAKING CHANGES
+
+* The APIs deprecated during 7.x are removed. `startDfu` takes `androidParameters`, `darwinParameters` and `dfuEventHandler` instead of the special parameter classes and individual callbacks, and `DfuEventHandler.onFirmwareUploading` is replaced by `onDfuProcessStarted`. See the "Migrating to 8.0.0" section of the README.
+* resolve assets on macOS and report firmware file errors accurately ([#296](https://github.com/juliansteenbakker/nordic_dfu/issues/296))
+* **android:** Android apps must declare BLUETOOTH_SCAN and, if they scan on API 30 and below, ACCESS_FINE_LOCATION themselves. Apps relying on the plugin's declarations will stop receiving scan results until they do. See the "Android permissions" section of the README.
+
+### Features
+
+* **android:** stop declaring bluetooth permissions in plugin manifest ([8aa6ef2](https://github.com/juliansteenbakker/nordic_dfu/commit/8aa6ef2e414c3c15a85bc298f875179ff35ea282)), closes [#163](https://github.com/juliansteenbakker/nordic_dfu/issues/163)
+* remove APIs deprecated in 7.x ([#298](https://github.com/juliansteenbakker/nordic_dfu/issues/298)) ([7e01f6b](https://github.com/juliansteenbakker/nordic_dfu/commit/7e01f6b1f9052064792c5be3444190fcffa9878d))
+
+
+### Bug Fixes
+
+* resolve assets on macOS and report firmware file errors accurately ([#296](https://github.com/juliansteenbakker/nordic_dfu/issues/296)) ([ccf5f1d](https://github.com/juliansteenbakker/nordic_dfu/commit/ccf5f1d035b3fc9b59f76f2849a4e706ae1893fa)), closes [#141](https://github.com/juliansteenbakker/nordic_dfu/issues/141)
+
 ## [8.0.0](https://github.com/juliansteenbakker/nordic_dfu/compare/v7.2.0...v8.0.0) (2026-08-18)
 
 
@@ -18,6 +59,13 @@
 ### Bug Fixes
 
 * resolve assets on macOS and report firmware file errors accurately ([#296](https://github.com/juliansteenbakker/nordic_dfu/issues/296)) ([ccf5f1d](https://github.com/juliansteenbakker/nordic_dfu/commit/ccf5f1d035b3fc9b59f76f2849a4e706ae1893fa)), closes [#141](https://github.com/juliansteenbakker/nordic_dfu/issues/141)
+
+## [7.2.1](https://github.com/juliansteenbakker/nordic_dfu/compare/v7.2.0...v7.2.1) (2026-08-24)
+
+### Bug Fixes
+
+* **apple:** update nordic dfu cocoapod to 4.17.0
+
 
 ## [7.2.0](https://github.com/juliansteenbakker/nordic_dfu/compare/v7.1.3...v7.2.0) (2026-08-17)
 

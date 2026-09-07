@@ -3,7 +3,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'nordic_dfu'
-  s.version          = '8.0.0' # x-release-please-version
+  s.version          = '8.1.0' # x-release-please-version
   s.summary          = 'DFU plugin for flutter.'
   s.description      = <<-DESC
 A DFU plugin project.
@@ -18,7 +18,7 @@ A DFU plugin project.
   s.ios.deployment_target = '11.0'
   s.osx.deployment_target = '10.15'
   s.swift_version    = '5.4'
-  s.dependency 'NordicDFU', '~> 4.16.0'  
+  s.dependency 'NordicDFU', '~> 4.17.0'  
   s.resource_bundles = {'nordic_dfu' => ['nordic_dfu/Sources/nordic_dfu/Resources/PrivacyInfo.xcprivacy']}
 end
 
