@@ -20,5 +20,6 @@ data class DfuConfig(
     val rebootTime: Long?,
     val mbrSize: Int?,
     val scope: Int?,
-    val currentMtu: Int?
+    val currentMtu: Int?,
+    val disableMtuRequest: Boolean?
 )

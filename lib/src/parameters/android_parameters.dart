@@ -14,6 +14,7 @@ class AndroidParameters {
     this.mbrSize,
     this.scope,
     this.currentMtu,
+    this.disableMtuRequest,
   });
 
   ///Sets whether the progress notification in the status bar should be disabled.
@@ -101,6 +102,14 @@ class AndroidParameters {
   /// This can optimize the DFU transfer speed based on the negotiated MTU.
   final int? currentMtu;
 
+  /// Disables requesting a higher MTU, keeping the link at the default size.
+  ///
+  /// Needed for targets that grant a large MTU but declare a smaller DFU packet
+  /// characteristic, such as Legacy DFU with its 20 byte limit. Their writes are
+  /// rejected at the ATT layer, and since data packets are sent without
+  /// response, the transfer stalls without reporting an error.
+  final bool? disableMtuRequest;
+
   /// Converts AndroidParameters into a json object.
   Map<String, dynamic> toJson() => {
         'disableNotification': disableNotification,
@@ -114,5 +123,6 @@ class AndroidParameters {
         'mbrSize': mbrSize,
         'scope': scope,
         'currentMtu': currentMtu,
+        'disableMtuRequest': disableMtuRequest,
       };
 }
