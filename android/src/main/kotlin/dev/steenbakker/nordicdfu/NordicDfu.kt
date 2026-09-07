@@ -112,6 +112,9 @@ class NordicDfu(private val context: Context, private val callback: DfuCallback)
         config.currentMtu?.let {
             starter.setCurrentMtu(it)
         }
+        if (config.disableMtuRequest == true) {
+            starter.disableMtuRequest()
+        }
 
         warnAboutAdjacentAddress(config.address)
 

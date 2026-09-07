@@ -91,6 +91,7 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHan
         val mbrSize = call.argument<Int>("mbrSize")
         val scope = call.argument<Int>("scope")
         val currentMtu = call.argument<Int>("currentMtu")
+        val disableMtuRequest = call.argument<Boolean>("disableMtuRequest")
 
         if (fileInAsset == null) fileInAsset = false
         if (address == null || filePath == null) {
@@ -137,7 +138,8 @@ class NordicDfuPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHan
             rebootTime = rebootTime,
             mbrSize = mbrSize,
             scope = scope,
-            currentMtu = currentMtu
+            currentMtu = currentMtu,
+            disableMtuRequest = disableMtuRequest
         )
 
         // Store pending result for this address
