@@ -1,5 +1,22 @@
 # Changelog
 
+## [8.1.0](https://github.com/juliansteenbakker/nordic_dfu/compare/v8.0.0...v8.1.0) (2026-09-07)
+
+
+### Features
+
+* **android:** expose disableMtuRequest on AndroidParameters ([#312](https://github.com/juliansteenbakker/nordic_dfu/issues/312)) ([db962be](https://github.com/juliansteenbakker/nordic_dfu/commit/db962beb5018afe2a38e5c4943ca645443eb7b1b))
+
+
+### Bug Fixes
+
+* **darwin:** apply numberOfPackets when no Darwin PRN is set ([#311](https://github.com/juliansteenbakker/nordic_dfu/issues/311)) ([5abd195](https://github.com/juliansteenbakker/nordic_dfu/commit/5abd1958bebe6e339adefce51b5f5400ff790139))
+
+
+### Dependencies
+
+* **deps:** bump gradle-wrapper from 9.7.0 to 9.7.1 in /android ([#301](https://github.com/juliansteenbakker/nordic_dfu/issues/301)) ([3f26ee0](https://github.com/juliansteenbakker/nordic_dfu/commit/3f26ee03c65df21e37f8eacc8cb352add6accdcb))
+
 ## [8.0.1](https://github.com/juliansteenbakker/nordic_dfu/compare/v8.0.0...v8.0.1) (2026-08-24)
 
 ### Bug Fixes
