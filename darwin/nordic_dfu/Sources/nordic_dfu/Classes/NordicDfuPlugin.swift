@@ -256,7 +256,10 @@ private struct DfuOptions {
 
     init(arguments: [String: Any]) {
         self.name = arguments["name"] as? String
+        // The top-level `numberOfPackets` argument is platform-neutral, so fall
+        // back to it when DarwinParameters does not set a PRN of its own.
         self.packetReceiptNotificationParameter = arguments["packetReceiptNotificationParameter"] as? UInt16
+            ?? arguments["numberOfPackets"] as? UInt16
         self.forceDfu = arguments["forceDfu"] as? Bool
         self.forceScanningForNewAddressInLegacyDfu = arguments["forceScanningForNewAddressInLegacyDfu"] as? Bool
         self.connectionTimeout = arguments["connectionTimeout"] as? TimeInterval
