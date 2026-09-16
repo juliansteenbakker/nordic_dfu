@@ -84,7 +84,7 @@ class NordicDfu {
     AndroidParameters androidParameters = const AndroidParameters(),
     DarwinParameters darwinParameters = const DarwinParameters(),
     DfuEventHandler? dfuEventHandler,
-  }) async {
+  }) {
     _eventHandlerMap[address] = DfuEventHandler(
       onDeviceConnected: dfuEventHandler?.onDeviceConnected,
       onDeviceConnecting: dfuEventHandler?.onDeviceConnecting,
@@ -117,7 +117,7 @@ class NordicDfu {
   }
 
   /// Aborts the DFU process.
-  Future<String?> abortDfu({String? address}) async {
+  Future<String?> abortDfu({String? address}) {
     if (address != null && Platform.isAndroid) {
       debugPrint(
         '[NordicDfu:abortDfu] Warning: aborting all DFU processes on Android',
