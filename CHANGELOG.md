@@ -1,5 +1,13 @@
 # Changelog
 
+## [8.1.1](https://github.com/juliansteenbakker/nordic_dfu/compare/v8.1.0...v8.1.1) (2026-10-16)
+
+
+### Dependencies
+
+* bump gradle-wrapper from 9.7.1 to 9.8.1 in /android ([#325](https://github.com/juliansteenbakker/nordic_dfu/issues/325)) ([c0f5bd6](https://github.com/juliansteenbakker/nordic_dfu/commit/c0f5bd6106b8ab505cb548cf021ee795f0812bcb))
+* bump very_good_analysis from 10.3.0 to 11.0.0 ([#315](https://github.com/juliansteenbakker/nordic_dfu/issues/315)) ([c5f7e79](https://github.com/juliansteenbakker/nordic_dfu/commit/c5f7e79fa9ce8adc2ff59322e1621fe1763ffd4c))
+
 ## [8.1.0](https://github.com/juliansteenbakker/nordic_dfu/compare/v8.0.0...v8.1.0) (2026-09-07)
 
 
